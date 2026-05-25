@@ -1,0 +1,7 @@
+.env
+storage/db.sqlite
+storage/db.sqlite-journal
+storage/uploads/*
+!storage/uploads/.gitkeep
+.DS_Store
+*.log

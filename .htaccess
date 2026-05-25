@@ -1,0 +1,27 @@
+# Route everything through index.php; allow real files (static assets) through.
+RewriteEngine On
+
+# Block direct access to source, templates, env, storage
+RewriteRule ^(src|templates|lang|storage)/ - [F,L]
+RewriteRule ^\.env - [F,L]
+RewriteRule ^\.htaccess - [F,L]
+RewriteRule ^routes\.php - [F,L]
+
+# Pass real files through (favicon, future css/js)
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Everything else goes to the front controller
+RewriteRule . index.php [L]
+
+# Security headers
+<IfModule mod_headers.c>
+  Header set X-Content-Type-Options "nosniff"
+  Header set X-Frame-Options "DENY"
+  Header set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+# Reasonable upload size for documents
+php_value upload_max_filesize 16M
+php_value post_max_size 20M
