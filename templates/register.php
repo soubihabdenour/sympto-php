@@ -1,48 +1,86 @@
-<?php $title = t('Register.title'); $error ??= null; ob_start(); ?>
+<?php
+require_once TEMPLATES_DIR . '/components/icons.php';
+$title = t('Register.title');
+$error ??= null;
+ob_start();
+?>
 <div class="min-h-screen flex items-center justify-center px-4 py-10">
     <div class="w-full max-w-md">
-        <a href="/" class="flex items-center justify-center gap-2 mb-6">
-            <div class="w-9 h-9 rounded-lg bg-brand-600 text-white grid place-items-center font-bold">M</div>
-            <div>
-                <div class="font-semibold"><?= h(t('Nav.appName')) ?></div>
-                <div class="text-xs text-ink-500"><?= h(t('Nav.tagline')) ?></div>
-            </div>
+        <a href="/" class="flex items-center justify-center gap-3 mb-7">
+            <span class="brand-logo">
+                <?= icon('stethoscope', 'w-5 h-5') ?>
+            </span>
+            <span>
+                <span class="block font-bold text-ink-900 leading-tight"><?= h(t('Nav.appName')) ?></span>
+                <span class="block text-xs text-ink-500 leading-tight"><?= h(t('Nav.tagline')) ?></span>
+            </span>
         </a>
-        <div class="card p-6">
-            <h1 class="text-lg font-semibold"><?= h(t('Register.title')) ?></h1>
-            <p class="text-sm text-ink-500 mt-1"><?= h(t('Register.blurb')) ?></p>
-            <form method="post" action="/register" class="mt-5 space-y-4">
+        <div class="card p-6 shadow-lift">
+            <h1 class="text-xl font-bold text-ink-900"><?= h(t('Register.title')) ?></h1>
+            <p class="text-sm text-ink-500 mt-1.5"><?= h(t('Register.blurb')) ?></p>
+            <form method="post" action="/register" class="mt-6 space-y-4">
                 <?= csrf_field() ?>
                 <div>
                     <label class="label"><?= h(t('Register.fullName')) ?></label>
-                    <input name="full_name" required class="input">
+                    <div class="relative">
+                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-ink-400">
+                            <?= icon('user', 'w-4 h-4') ?>
+                        </span>
+                        <input name="full_name" required class="input input-with-icon">
+                    </div>
                 </div>
                 <div>
                     <label class="label"><?= h(t('Register.email')) ?></label>
-                    <input name="email" type="email" required class="input">
+                    <div class="relative">
+                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-ink-400">
+                            <?= icon('mail', 'w-4 h-4') ?>
+                        </span>
+                        <input name="email" type="email" required class="input input-with-icon">
+                    </div>
                 </div>
                 <div>
                     <label class="label"><?= h(t('Register.password')) ?></label>
-                    <input name="password" type="password" required minlength="8" class="input">
+                    <div class="relative">
+                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-ink-400">
+                            <?= icon('lock', 'w-4 h-4') ?>
+                        </span>
+                        <input name="password" type="password" required minlength="8" class="input input-with-icon">
+                    </div>
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="label"><?= h(t('Register.licenseId')) ?></label>
-                        <input name="license_id" class="input">
+                        <div class="relative">
+                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-ink-400">
+                                <?= icon('id-card', 'w-4 h-4') ?>
+                            </span>
+                            <input name="license_id" class="input input-with-icon">
+                        </div>
                     </div>
                     <div>
                         <label class="label"><?= h(t('Register.specialty')) ?></label>
-                        <input name="specialty" class="input">
+                        <div class="relative">
+                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-ink-400">
+                                <?= icon('stethoscope', 'w-4 h-4') ?>
+                            </span>
+                            <input name="specialty" class="input input-with-icon">
+                        </div>
                     </div>
                 </div>
                 <?php if ($error): ?>
-                    <div class="text-sm text-red-600 bg-red-50 border border-red-100 rounded-md p-2"><?= h($error) ?></div>
+                    <div class="text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg p-3 flex items-start gap-2">
+                        <?= icon('alert', 'w-4 h-4 mt-0.5 shrink-0') ?>
+                        <span><?= h($error) ?></span>
+                    </div>
                 <?php endif; ?>
-                <button type="submit" class="btn-primary w-full"><?= h(t('Register.submit')) ?></button>
+                <button type="submit" class="btn-primary w-full">
+                    <?= icon('plus', 'w-4 h-4') ?>
+                    <?= h(t('Register.submit')) ?>
+                </button>
             </form>
-            <div class="text-xs text-ink-500 mt-4 text-center">
+            <div class="text-xs text-ink-500 mt-5 text-center">
                 <?= h(t('Register.haveAccount')) ?>
-                <a class="text-brand-700 hover:underline" href="/login"><?= h(t('Register.signIn')) ?></a>
+                <a class="text-brand-700 hover:text-brand-800 font-semibold hover:underline" href="/login"><?= h(t('Register.signIn')) ?></a>
             </div>
         </div>
         <div class="mt-4">

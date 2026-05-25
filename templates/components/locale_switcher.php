@@ -1,6 +1,6 @@
-<label class="flex items-center gap-2 text-xs text-ink-600">
+<label class="flex items-center gap-1 text-xs text-ink-600 flex-1">
     <span class="sr-only"><?= h(t('Locale.label')) ?></span>
-    <select onchange="setLocale(this.value)" class="bg-transparent border-0 text-xs text-ink-700 focus:outline-none focus:ring-0 cursor-pointer">
+    <select onchange="setLocale(this.value)" class="bg-transparent border-0 text-xs text-ink-700 focus:outline-none focus:ring-0 cursor-pointer w-full">
         <?php foreach (SUPPORTED_LOCALES as $l): ?>
             <option value="<?= h($l) ?>" <?= $l === current_locale() ? 'selected' : '' ?>>
                 <?= h(t("Locale.$l")) ?>
