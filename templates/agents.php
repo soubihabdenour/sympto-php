@@ -3,10 +3,10 @@ require_once TEMPLATES_DIR . '/components/icons.php';
 $title = t('Agents.title');
 ob_start();
 ?>
-<div class="max-w-6xl mx-auto px-6 py-6">
-    <div class="mb-6">
-        <h1 class="text-2xl font-bold tracking-tight text-ink-900 flex items-center gap-2">
-            <?= icon('agents', 'w-6 h-6 text-brand-700') ?>
+<div class="max-w-6xl mx-auto px-4 sm:px-6 py-5 sm:py-6">
+    <div class="mb-5 sm:mb-6">
+        <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-ink-900 flex items-center gap-2">
+            <?= icon('agents', 'w-5 h-5 sm:w-6 sm:h-6 text-brand-700 shrink-0') ?>
             <?= h(t('Agents.title')) ?>
         </h1>
         <p class="text-sm text-ink-500 mt-1 max-w-2xl"><?= h(t('Agents.sub')) ?></p>

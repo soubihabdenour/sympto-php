@@ -39,7 +39,7 @@ $tabsMeta = [
 ];
 ob_start();
 ?>
-<div class="max-w-7xl mx-auto px-6 py-6 space-y-5" x-data="caseView(<?= (int) $cid ?>)">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 py-5 sm:py-6 space-y-5" x-data="caseView(<?= (int) $cid ?>)">
 
     <div class="flex flex-wrap items-start justify-between gap-3">
         <div class="min-w-0">
@@ -47,7 +47,7 @@ ob_start();
                 <?= icon('arrow-left', 'w-3.5 h-3.5') ?>
                 <?= h(t('Case.back')) ?>
             </a>
-            <h1 class="text-2xl font-bold tracking-tight mt-1 text-ink-900"><?= h($case['title']) ?></h1>
+            <h1 class="text-xl sm:text-2xl font-bold tracking-tight mt-1 text-ink-900 break-words"><?= h($case['title']) ?></h1>
             <div class="text-sm text-ink-500 mt-1 flex items-center gap-2 flex-wrap">
                 <span class="inline-flex items-center gap-1">
                     <?= icon($spec['icon'] ?? 'stethoscope', 'w-4 h-4 text-ink-400') ?>
@@ -59,15 +59,15 @@ ob_start();
                 </span>
             </div>
         </div>
-        <div class="flex flex-wrap items-center gap-2">
-            <div class="card px-3 py-2 flex items-center gap-2 text-sm">
-                <span class="w-7 h-7 rounded-md bg-brand-50 text-brand-700 grid place-items-center">
+        <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+            <div class="card px-3 py-2 flex items-center gap-2 text-sm min-w-0 flex-1 sm:flex-initial">
+                <span class="w-7 h-7 rounded-md bg-brand-50 text-brand-700 grid place-items-center shrink-0">
                     <?= icon($spec['icon'] ?? 'stethoscope', 'w-4 h-4') ?>
                 </span>
-                <span class="font-medium text-ink-800"><?= h($spec['name'] ?? t('Case.agentLabel')) ?></span>
-                <button type="button" @click="changingAgent = true" class="text-xs text-brand-700 hover:underline ml-1"><?= h(t('Case.agentChange')) ?></button>
+                <span class="font-medium text-ink-800 truncate"><?= h($spec['name'] ?? t('Case.agentLabel')) ?></span>
+                <button type="button" @click="changingAgent = true" class="text-xs text-brand-700 hover:underline ml-auto shrink-0"><?= h(t('Case.agentChange')) ?></button>
             </div>
-            <button type="button" @click="generateReport()" :disabled="busy === 'report'" class="btn-primary">
+            <button type="button" @click="generateReport()" :disabled="busy === 'report'" class="btn-primary w-full sm:w-auto">
                 <?= icon('sparkles', 'w-4 h-4') ?>
                 <span x-show="busy !== 'report'"><?= h(t('Case.generateReport')) ?></span>
                 <span x-show="busy === 'report'"><?= h(t('Common.generating')) ?></span>

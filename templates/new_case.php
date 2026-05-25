@@ -4,14 +4,14 @@ $title = t('NewCase.title');
 $error ??= null;
 ob_start();
 ?>
-<div class="max-w-5xl mx-auto px-6 py-6">
-    <div class="mb-6">
+<div class="max-w-5xl mx-auto px-4 sm:px-6 py-5 sm:py-6">
+    <div class="mb-5 sm:mb-6">
         <a href="/dashboard" class="inline-flex items-center gap-1 text-xs text-ink-500 hover:text-ink-800 transition-colors mb-2">
             <?= icon('arrow-left', 'w-3.5 h-3.5') ?>
             <?= h(t('Case.back')) ?>
         </a>
-        <h1 class="text-2xl font-bold tracking-tight text-ink-900 flex items-center gap-2">
-            <?= icon('plus-circle', 'w-6 h-6 text-brand-700') ?>
+        <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-ink-900 flex items-center gap-2">
+            <?= icon('plus-circle', 'w-5 h-5 sm:w-6 sm:h-6 text-brand-700 shrink-0') ?>
             <?= h(t('NewCase.title')) ?>
         </h1>
         <p class="text-sm text-ink-500 mt-1"><?= h(t('NewCase.sub')) ?></p>
@@ -47,7 +47,7 @@ ob_start();
             </div>
         <?php endif; ?>
         <div class="mt-6 flex justify-end">
-            <button type="submit" class="btn-primary">
+            <button type="submit" class="btn-primary w-full sm:w-auto">
                 <?= icon('plus', 'w-4 h-4') ?>
                 <?= h(t('NewCase.submit')) ?>
             </button>

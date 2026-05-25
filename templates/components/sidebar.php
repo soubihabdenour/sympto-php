@@ -7,19 +7,25 @@ $items = [
     ['href' => '/settings',   'label' => t('Nav.settings'),  'icon' => 'settings'],
 ];
 ?>
-<aside class="w-64 shrink-0 bg-white border-r border-ink-200 flex flex-col h-screen sticky top-0 no-print">
-    <div class="px-5 py-5 border-b border-ink-200">
-        <a href="/dashboard" class="flex items-center gap-3">
-            <span class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-600 to-brand-800 text-white grid place-items-center shadow-sm">
+<aside id="sidebar"
+       class="w-64 shrink-0 bg-white border-r border-ink-200 flex flex-col h-screen no-print
+              fixed inset-y-0 left-0 z-50 -translate-x-full transition-transform duration-200 ease-out
+              lg:sticky lg:top-0 lg:translate-x-0">
+    <div class="px-5 py-4 border-b border-ink-200 flex items-center justify-between gap-2">
+        <a href="/dashboard" class="flex items-center gap-3 min-w-0">
+            <span class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-600 to-brand-800 text-white grid place-items-center shadow-sm shrink-0">
                 <?= icon('stethoscope', 'w-5 h-5') ?>
             </span>
             <span class="min-w-0">
-                <span class="block text-sm font-bold leading-tight text-ink-900"><?= h(t('Nav.appName')) ?></span>
-                <span class="block text-[11px] text-ink-500 leading-tight mt-0.5"><?= h(t('Nav.tagline')) ?></span>
+                <span class="block text-sm font-bold leading-tight text-ink-900 truncate"><?= h(t('Nav.appName')) ?></span>
+                <span class="block text-[11px] text-ink-500 leading-tight mt-0.5 truncate"><?= h(t('Nav.tagline')) ?></span>
             </span>
         </a>
+        <button type="button" data-drawer-close class="lg:hidden icon-btn -mr-2" aria-label="Close menu">
+            <?= icon('x', 'w-5 h-5') ?>
+        </button>
     </div>
-    <nav class="flex-1 px-3 py-4 space-y-1">
+    <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
         <?php foreach ($items as $it):
             $active = $path === $it['href'] || ($it['href'] !== '/dashboard' && str_starts_with($path, $it['href']));
             $cls = $active ? 'nav-item-active' : 'nav-item-idle';

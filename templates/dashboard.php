@@ -21,16 +21,16 @@ $totalCases = count($cases);
 
 ob_start();
 ?>
-<div class="max-w-6xl mx-auto px-6 py-6">
-    <div class="flex flex-wrap items-start justify-between gap-3 mb-6">
-        <div>
-            <h1 class="text-2xl font-bold tracking-tight text-ink-900"><?= h(t('Dashboard.title')) ?></h1>
-            <p class="text-sm text-ink-500 mt-1 flex items-center gap-1.5">
-                <?= icon('user', 'w-4 h-4 text-ink-400') ?>
-                <?= h(t('Dashboard.welcome', ['name' => $doctor['full_name']])) ?>
+<div class="max-w-6xl mx-auto px-4 sm:px-6 py-5 sm:py-6">
+    <div class="flex flex-wrap items-start justify-between gap-3 mb-5 sm:mb-6">
+        <div class="min-w-0">
+            <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-ink-900"><?= h(t('Dashboard.title')) ?></h1>
+            <p class="text-sm text-ink-500 mt-1 flex items-center gap-1.5 min-w-0">
+                <?= icon('user', 'w-4 h-4 text-ink-400 shrink-0') ?>
+                <span class="truncate"><?= h(t('Dashboard.welcome', ['name' => $doctor['full_name']])) ?></span>
             </p>
         </div>
-        <a href="/cases/new" class="btn-primary">
+        <a href="/cases/new" class="btn-primary hidden sm:inline-flex">
             <?= icon('plus', 'w-4 h-4') ?>
             <?= h(t('Dashboard.newCase')) ?>
         </a>
