@@ -23,13 +23,17 @@ $tints = [
     'obgyn'         => ['bg' => 'bg-pink-50',     'fg' => 'text-pink-700'],
 ];
 $t = $tints[$spec['id']] ?? ['bg' => 'bg-brand-50', 'fg' => 'text-brand-700'];
-$ring = $selected ? 'ring-2 ring-brand-500 border-brand-300' : '';
 ?>
 <?php if ($selectFormName): ?>
-    <label class="card card-hover cursor-pointer block <?= $ring ?> relative">
-        <input type="radio" name="<?= h($selectFormName) ?>" value="<?= h($spec['id']) ?>" class="sr-only peer" <?= $selected ? 'checked' : '' ?>>
-        <div class="p-4">
-            <div class="flex items-start gap-3">
+    <label class="relative block cursor-pointer">
+        <input type="radio" name="<?= h($selectFormName) ?>" value="<?= h($spec['id']) ?>" class="peer sr-only" <?= $selected ? 'checked' : '' ?>>
+        <span class="pointer-events-none absolute top-3 right-3 z-10 w-6 h-6 rounded-full bg-brand-700 text-white grid place-items-center shadow-sm opacity-0 scale-50 transition-all duration-150 peer-checked:opacity-100 peer-checked:scale-100">
+            <?= icon('check', 'w-3.5 h-3.5') ?>
+        </span>
+        <div class="card card-hover p-4 h-full
+                    peer-checked:ring-2 peer-checked:ring-brand-500 peer-checked:border-brand-300 peer-checked:bg-brand-50/40
+                    peer-focus-visible:ring-2 peer-focus-visible:ring-brand-500/60">
+            <div class="flex items-start gap-3 pr-6">
                 <div class="w-11 h-11 rounded-lg <?= $t['bg'] ?> <?= $t['fg'] ?> grid place-items-center shrink-0">
                     <?= icon($spec['icon'] ?? 'stethoscope', 'w-6 h-6') ?>
                 </div>
@@ -37,15 +41,12 @@ $ring = $selected ? 'ring-2 ring-brand-500 border-brand-300' : '';
                     <div class="font-semibold leading-tight text-ink-900"><?= h($spec['name']) ?></div>
                     <div class="text-xs text-ink-500 mt-0.5"><?= h($spec['specialty']) ?></div>
                 </div>
-                <?php if ($selected): ?>
-                    <span class="text-brand-700 shrink-0"><?= icon('check-circle', 'w-5 h-5') ?></span>
-                <?php endif; ?>
             </div>
             <p class="text-sm text-ink-600 mt-3 leading-relaxed"><?= h($spec['description']) ?></p>
         </div>
     </label>
 <?php else: ?>
-    <div class="card <?= $ring ?>">
+    <div class="card">
         <div class="p-4">
             <div class="flex items-start gap-3">
                 <div class="w-11 h-11 rounded-lg <?= $t['bg'] ?> <?= $t['fg'] ?> grid place-items-center shrink-0">
