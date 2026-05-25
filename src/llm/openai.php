@@ -6,7 +6,29 @@ function openai_adapter_enabled(): bool {
 }
 
 function openai_adapter_model(): string {
+    $override = setting_get('llm.openai.model');
+    if ($override !== null && $override !== '') return $override;
     return (string) env('OPENAI_MODEL', 'gpt-4o');
+}
+
+/**
+ * Curated catalog of common chat-capable OpenAI models. Kept hardcoded
+ * because /v1/models returns hundreds of irrelevant entries (embeddings,
+ * fine-tunes, deprecated snapshots) and there's no reliable category filter.
+ *
+ * @return array<int, array{id: string, label: string, description: ?string, source: string}>
+ */
+function openai_list_models(): array {
+    return [
+        ['id' => 'gpt-4o',       'label' => 'GPT-4o',       'description' => 'Flagship multimodal model.',                  'source' => 'fallback'],
+        ['id' => 'gpt-4o-mini',  'label' => 'GPT-4o mini',  'description' => 'Cheaper, faster GPT-4o tier.',                'source' => 'fallback'],
+        ['id' => 'gpt-4.1',      'label' => 'GPT-4.1',      'description' => 'Long-context coding/reasoning tier.',         'source' => 'fallback'],
+        ['id' => 'gpt-4.1-mini', 'label' => 'GPT-4.1 mini', 'description' => 'Cheaper GPT-4.1.',                            'source' => 'fallback'],
+        ['id' => 'o3',           'label' => 'o3',           'description' => 'Deep-reasoning model.',                       'source' => 'fallback'],
+        ['id' => 'o3-mini',      'label' => 'o3-mini',      'description' => 'Cheaper deep-reasoning model.',               'source' => 'fallback'],
+        ['id' => 'o1',           'label' => 'o1',           'description' => 'Previous-gen reasoning model.',               'source' => 'fallback'],
+        ['id' => 'o1-mini',      'label' => 'o1-mini',      'description' => 'Previous-gen cheaper reasoning model.',       'source' => 'fallback'],
+    ];
 }
 
 function openai_adapter_complete(array $opts): string {

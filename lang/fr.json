@@ -41,12 +41,26 @@
     "casesTitle": "Dossiers",
     "activityTitle": "Activité récente",
     "byModelTitle": "Usage par modèle",
+    "byActionTitle": "Usage par action",
     "backToList": "Retour aux médecins",
     "joined": "Inscrit le {when}",
     "emptyDoctors": "Aucun médecin enregistré.",
     "emptyCases": "Aucun dossier pour ce médecin.",
     "emptyActivity": "Aucune entrée dans le journal.",
+    "emptyUsage": "Aucune utilisation LLM.",
     "tokenSplit": "{in} entrée · {out} sortie",
+    "action": {
+      "chat": "Réponse chat",
+      "report": "Rapport diagnostic"
+    },
+    "chart": {
+      "dailyTitle": "Consommation quotidienne · {days} derniers jours",
+      "input": "Entrée",
+      "output": "Sortie",
+      "peak": "Pic : {tokens} le {when}",
+      "noData": "Aucune activité LLM sur cette période.",
+      "totalTooltip": "Total"
+    },
     "kpi": {
       "doctors": "Médecins",
       "cases": "Dossiers",
@@ -55,7 +69,12 @@
       "tokens": "Jetons totaux",
       "llmCalls": "Appels LLM",
       "tokensIn": "Jetons entrée",
-      "tokensOut": "Jetons sortie"
+      "tokensOut": "Jetons sortie",
+      "avgPerCall": "Moy. / appel",
+      "over": "sur {n} appels",
+      "estCost": "Coût estimé",
+      "costApprox": "Approximatif (tarifs publics)",
+      "costPartial": "Partiel — certains modèles sans tarif"
     },
     "col": {
       "doctor": "Médecin",
@@ -68,7 +87,38 @@
       "tokensOut": "Jetons sortie",
       "tokensTotal": "Total",
       "lastActive": "Dernière activité",
-      "model": "Modèle"
+      "model": "Modèle",
+      "action": "Action",
+      "avgPerCall": "Moy. / appel",
+      "estCost": "Coût estimé",
+      "tokenShare": "Part de jetons"
+    }
+  },
+  "AdminSettings": {
+    "linkTitle": "Paramètres LLM",
+    "title": "Paramètres LLM",
+    "sub": "Choisissez le modèle utilisé par les agents. La sélection est stockée en base et a priorité sur .env.",
+    "provider": "Fournisseur",
+    "activeProvider": "actif",
+    "providerHint": "Le fournisseur actif est défini par LLM_PROVIDER dans .env. Vous pouvez préselectionner les modèles des autres fournisseurs ici, mais ils ne seront utilisés qu'en pointant LLM_PROVIDER vers eux.",
+    "modelPickerTitle": "Choisir un modèle {provider}",
+    "modelPickerSub": "Le modèle sélectionné est utilisé pour les réponses chat, la génération de rapports et les recherches web.",
+    "currentModel": "Actuel",
+    "overridden": "Surcharge BDD",
+    "fromEnv": "Depuis .env / défaut",
+    "sourceApi": "{n} modèles depuis l'API (filtrés sur le palier gratuit AI Studio)",
+    "sourceFallback": "{n} modèles depuis la liste de secours (API injoignable ou clé absente)",
+    "modelLabel": "Modèle",
+    "save": "Enregistrer",
+    "reset": "Réinitialiser",
+    "resetConfirm": "Effacer la surcharge BDD et revenir au modèle de .env / défaut ?",
+    "fullCatalog": "Voir le catalogue complet",
+    "col": { "id": "ID du modèle", "label": "Nom affiché", "description": "Description" },
+    "note": "Le coût estimé utilise les tarifs publics par million de jetons. La disponibilité et les tarifs peuvent évoluer.",
+    "flash": {
+      "saved": "Sélection enregistrée.",
+      "savedUnknown": "Enregistré. Le modèle n'est pas dans le catalogue connu — vérifiez l'ID exact.",
+      "reset": "Surcharge effacée. Retour au modèle de .env / défaut."
     }
   },
   "Landing": {

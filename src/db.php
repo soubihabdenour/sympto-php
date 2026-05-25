@@ -98,6 +98,11 @@ function db_init(): void {
             is_mock INTEGER NOT NULL DEFAULT 0,
             created_at TEXT NOT NULL DEFAULT (datetime('now'))
         );
+        CREATE TABLE IF NOT EXISTS app_settings (
+            key TEXT PRIMARY KEY,
+            value TEXT,
+            updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+        );
         CREATE TABLE IF NOT EXISTS audit_logs (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             doctor_id INTEGER REFERENCES doctors(id) ON DELETE SET NULL,
@@ -161,4 +166,33 @@ function db_exec(string $sql, array $params = []): void {
 function db_insert(string $sql, array $params = []): int {
     db_exec($sql, $params);
     return (int) db()->lastInsertId();
+}
+
+/**
+ * Read a single app setting with a per-request cache.
+ */
+function setting_get(string $key, ?string $default = null): ?string {
+    $cache = &$GLOBALS['__setting_cache'];
+    if (!is_array($cache)) $cache = [];
+    if (array_key_exists($key, $cache)) return $cache[$key] ?? $default;
+    $row = db_fetch('SELECT value FROM app_settings WHERE key = ?', [$key]);
+    $cache[$key] = $row ? ($row['value'] ?? null) : null;
+    return $cache[$key] ?? $default;
+}
+
+/**
+ * Upsert an app setting. Pass null/empty to clear it so the caller's
+ * fallback chain (env, hardcoded default) takes over.
+ */
+function setting_set(string $key, ?string $value): void {
+    if ($value === null || $value === '') {
+        db_exec('DELETE FROM app_settings WHERE key = ?', [$key]);
+    } else {
+        db_exec(
+            "INSERT INTO app_settings (key, value, updated_at) VALUES (?, ?, datetime('now'))
+             ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at",
+            [$key, $value]
+        );
+    }
+    unset($GLOBALS['__setting_cache'][$key]);
 }

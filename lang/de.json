@@ -41,12 +41,26 @@
     "casesTitle": "Fälle",
     "activityTitle": "Letzte Aktivität",
     "byModelTitle": "Nutzung pro Modell",
+    "byActionTitle": "Nutzung pro Aktion",
     "backToList": "Zurück zu Ärzten",
     "joined": "Registriert am {when}",
     "emptyDoctors": "Noch keine Ärzte registriert.",
     "emptyCases": "Noch keine Fälle für diesen Arzt.",
     "emptyActivity": "Noch keine Audit-Log-Einträge.",
+    "emptyUsage": "Noch keine LLM-Nutzung.",
     "tokenSplit": "{in} ein · {out} aus",
+    "action": {
+      "chat": "Chat-Antwort",
+      "report": "Diagnosebericht"
+    },
+    "chart": {
+      "dailyTitle": "Tägliche Token-Nutzung · letzte {days} Tage",
+      "input": "Eingabe",
+      "output": "Ausgabe",
+      "peak": "Spitze: {tokens} am {when}",
+      "noData": "Keine LLM-Aktivität in diesem Zeitraum.",
+      "totalTooltip": "Gesamt"
+    },
     "kpi": {
       "doctors": "Ärzte",
       "cases": "Fälle",
@@ -55,7 +69,12 @@
       "tokens": "Tokens gesamt",
       "llmCalls": "LLM-Aufrufe",
       "tokensIn": "Eingabe-Tokens",
-      "tokensOut": "Ausgabe-Tokens"
+      "tokensOut": "Ausgabe-Tokens",
+      "avgPerCall": "Ø / Aufruf",
+      "over": "über {n} Aufrufe",
+      "estCost": "Gesch. Kosten",
+      "costApprox": "Annäherung (Listenpreise)",
+      "costPartial": "Teilweise — einige Modelle ohne Preis"
     },
     "col": {
       "doctor": "Arzt",
@@ -68,7 +87,38 @@
       "tokensOut": "Tokens aus",
       "tokensTotal": "Gesamt",
       "lastActive": "Zuletzt aktiv",
-      "model": "Modell"
+      "model": "Modell",
+      "action": "Aktion",
+      "avgPerCall": "Ø / Aufruf",
+      "estCost": "Gesch. Kosten",
+      "tokenShare": "Token-Anteil"
+    }
+  },
+  "AdminSettings": {
+    "linkTitle": "LLM-Einstellungen",
+    "title": "LLM-Einstellungen",
+    "sub": "Wählen Sie das Modell, das die Agenten verwenden. Die Auswahl wird in der DB gespeichert und überschreibt .env.",
+    "provider": "Anbieter",
+    "activeProvider": "aktiv",
+    "providerHint": "Der aktive Anbieter wird durch LLM_PROVIDER in .env festgelegt. Sie können hier Modelle für andere Anbieter vorauswählen, sie greifen aber erst, wenn LLM_PROVIDER darauf zeigt.",
+    "modelPickerTitle": "{provider}-Modell wählen",
+    "modelPickerSub": "Das gewählte Modell wird für Chat-Antworten, Berichte und Web-Recherche verwendet.",
+    "currentModel": "Aktuell",
+    "overridden": "DB-Überschreibung",
+    "fromEnv": "Aus .env / Standard",
+    "sourceApi": "{n} Modelle aus Live-API (gefiltert auf AI-Studio-Gratis-Tier)",
+    "sourceFallback": "{n} Modelle aus kuratierter Fallback-Liste (API nicht erreichbar oder kein Schlüssel)",
+    "modelLabel": "Modell",
+    "save": "Speichern",
+    "reset": "Zurücksetzen",
+    "resetConfirm": "DB-Überschreibung löschen und auf .env / Standard zurückfallen?",
+    "fullCatalog": "Vollständigen Katalog anzeigen",
+    "col": { "id": "Modell-ID", "label": "Anzeigename", "description": "Beschreibung" },
+    "note": "Die geschätzten Kosten basieren auf veröffentlichten Pro-Million-Token-Raten. Verfügbarkeit und Preise können sich ändern.",
+    "flash": {
+      "saved": "Auswahl gespeichert.",
+      "savedUnknown": "Gespeichert. Das Modell ist nicht im bekannten Katalog — bitte die ID prüfen.",
+      "reset": "Überschreibung gelöscht. Rückfall auf .env / Standard."
     }
   },
   "Landing": {

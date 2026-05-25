@@ -41,12 +41,26 @@
     "casesTitle": "Cases",
     "activityTitle": "Recent activity",
     "byModelTitle": "Usage by model",
+    "byActionTitle": "Usage by action",
     "backToList": "Back to doctors",
     "joined": "Joined {when}",
     "emptyDoctors": "No doctors registered yet.",
     "emptyCases": "No cases yet for this doctor.",
     "emptyActivity": "No audit log entries yet.",
+    "emptyUsage": "No LLM usage yet.",
     "tokenSplit": "{in} in · {out} out",
+    "action": {
+      "chat": "Chat reply",
+      "report": "Diagnosis report"
+    },
+    "chart": {
+      "dailyTitle": "Daily token consumption · last {days} days",
+      "input": "Input",
+      "output": "Output",
+      "peak": "Peak: {tokens} on {when}",
+      "noData": "No LLM activity in this window.",
+      "totalTooltip": "Total"
+    },
     "kpi": {
       "doctors": "Doctors",
       "cases": "Cases",
@@ -55,7 +69,12 @@
       "tokens": "Total tokens",
       "llmCalls": "LLM calls",
       "tokensIn": "Input tokens",
-      "tokensOut": "Output tokens"
+      "tokensOut": "Output tokens",
+      "avgPerCall": "Avg / call",
+      "over": "over {n} calls",
+      "estCost": "Est. cost",
+      "costApprox": "Approximate (published rates)",
+      "costPartial": "Partial — some models have no pricing"
     },
     "col": {
       "doctor": "Doctor",
@@ -68,7 +87,38 @@
       "tokensOut": "Tokens out",
       "tokensTotal": "Total",
       "lastActive": "Last active",
-      "model": "Model"
+      "model": "Model",
+      "action": "Action",
+      "avgPerCall": "Avg / call",
+      "estCost": "Est. cost",
+      "tokenShare": "Token share"
+    }
+  },
+  "AdminSettings": {
+    "linkTitle": "LLM settings",
+    "title": "LLM settings",
+    "sub": "Choose which model the agents use. Selection is stored in the database and overrides the .env value.",
+    "provider": "Provider",
+    "activeProvider": "active",
+    "providerHint": "The active provider is fixed by LLM_PROVIDER in .env. You can preview / preset model choices for the other providers from here, but they only take effect once LLM_PROVIDER points at them.",
+    "modelPickerTitle": "Pick a {provider} model",
+    "modelPickerSub": "The selected model is used for chat replies, report generation, and web-search prompts.",
+    "currentModel": "Current",
+    "overridden": "DB override",
+    "fromEnv": "From .env / default",
+    "sourceApi": "{n} models from live API (filtered to AI Studio free tier)",
+    "sourceFallback": "{n} models from curated fallback (API unreachable or no key)",
+    "modelLabel": "Model",
+    "save": "Save selection",
+    "reset": "Reset to .env / default",
+    "resetConfirm": "Clear the DB override and fall back to LLM_PROVIDER's .env / default model?",
+    "fullCatalog": "See the full catalog",
+    "col": { "id": "Model ID", "label": "Display name", "description": "Description" },
+    "note": "Approximate cost is calculated using the published per-million-token rates. Model availability and pricing may change.",
+    "flash": {
+      "saved": "Model selection saved.",
+      "savedUnknown": "Saved. The model isn't in the known catalog — make sure the ID is exactly right.",
+      "reset": "Override cleared. Falling back to .env / default."
     }
   },
   "Landing": {

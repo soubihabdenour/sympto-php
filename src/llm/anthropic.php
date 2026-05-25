@@ -6,7 +6,25 @@ function anthropic_adapter_enabled(): bool {
 }
 
 function anthropic_adapter_model(): string {
+    $override = setting_get('llm.anthropic.model');
+    if ($override !== null && $override !== '') return $override;
     return (string) env('ANTHROPIC_MODEL', 'claude-opus-4-7');
+}
+
+/**
+ * Curated catalog of current Claude chat models. Anthropic does not expose
+ * a list endpoint, so this is hardcoded.
+ *
+ * @return array<int, array{id: string, label: string, description: ?string, source: string}>
+ */
+function anthropic_list_models(): array {
+    return [
+        ['id' => 'claude-opus-4-7',    'label' => 'Claude Opus 4.7',    'description' => 'Highest-capability Claude tier.',           'source' => 'fallback'],
+        ['id' => 'claude-sonnet-4-6',  'label' => 'Claude Sonnet 4.6',  'description' => 'Balanced quality/speed/cost tier.',         'source' => 'fallback'],
+        ['id' => 'claude-haiku-4-5',   'label' => 'Claude Haiku 4.5',   'description' => 'Fastest, cheapest current Claude.',         'source' => 'fallback'],
+        ['id' => 'claude-3-5-sonnet-latest', 'label' => 'Claude 3.5 Sonnet', 'description' => 'Legacy Claude 3.5 Sonnet snapshot.',  'source' => 'fallback'],
+        ['id' => 'claude-3-5-haiku-latest',  'label' => 'Claude 3.5 Haiku',  'description' => 'Legacy Claude 3.5 Haiku snapshot.',   'source' => 'fallback'],
+    ];
 }
 
 function anthropic_adapter_complete(array $opts): string {

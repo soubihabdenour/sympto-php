@@ -288,15 +288,74 @@ route('GET', '/admin', function () {
          FROM doctors d
          ORDER BY (d.role = 'ADMIN') ASC, d.full_name COLLATE NOCASE ASC"
     );
-    $usageByDoctor = aggregate_token_usage_by_doctor();
+    $usage = aggregate_token_usage(null, 30);
     foreach ($doctors as &$row) {
-        $u = $usageByDoctor[(int) $row['id']] ?? ['input_tokens' => 0, 'output_tokens' => 0, 'calls' => 0];
+        $u = $usage['by_doctor'][(int) $row['id']]
+            ?? ['input_tokens' => 0, 'output_tokens' => 0, 'calls' => 0, 'est_cost_usd' => 0.0];
         $row['input_tokens'] = (int) $u['input_tokens'];
         $row['output_tokens'] = (int) $u['output_tokens'];
         $row['llm_calls'] = (int) $u['calls'];
+        $row['est_cost_usd'] = (float) $u['est_cost_usd'];
     }
     unset($row);
-    render('admin_index', ['doctor' => $admin, 'doctors' => $doctors]);
+    render('admin_index', ['doctor' => $admin, 'doctors' => $doctors, 'usage' => $usage]);
+});
+
+route('GET', '/admin/settings', function () {
+    $admin = require_admin();
+    $provider = (string) ($_GET['provider'] ?? llm_provider());
+    if (!in_array($provider, ['openai', 'anthropic', 'gemini'], true)) {
+        $provider = llm_provider();
+    }
+    $models = llm_list_models($provider);
+    $current = match ($provider) {
+        'openai' => openai_adapter_model(),
+        'anthropic' => anthropic_adapter_model(),
+        'gemini' => gemini_adapter_model(),
+    };
+    render('admin_settings', [
+        'doctor' => $admin,
+        'active_provider' => llm_provider(),
+        'selected_provider' => $provider,
+        'models' => $models,
+        'current_model' => $current,
+        'is_overridden' => llm_model_is_overridden($provider),
+        'flash' => $_SESSION['admin_settings_flash'] ?? null,
+    ]);
+    unset($_SESSION['admin_settings_flash']);
+});
+
+route('POST', '/admin/settings', function () {
+    require_admin();
+    csrf_check();
+    $provider = (string) ($_POST['provider'] ?? '');
+    if (!in_array($provider, ['openai', 'anthropic', 'gemini'], true)) bad_request('invalid provider');
+    $action = (string) ($_POST['_action'] ?? 'save');
+    if ($action === 'reset') {
+        setting_set(llm_model_setting_key($provider), null);
+        $_SESSION['admin_settings_flash'] = ['kind' => 'ok', 'message' => 'reset'];
+        redirect('/admin/settings?provider=' . urlencode($provider));
+    }
+    $model = trim((string) ($_POST['model'] ?? ''));
+    if ($model === '' || strlen($model) > 80 || !preg_match('/^[A-Za-z0-9._:\\/-]+$/', $model)) {
+        bad_request('invalid model id');
+    }
+    // Best-effort validation against the catalog; allow values from either
+    // the live API list or the hardcoded fallback so an admin can paste a
+    // newer Gemini ID that hasn't propagated to the curated list yet.
+    $catalog = llm_list_models($provider);
+    $known = array_column($catalog, 'id');
+    if (!in_array($model, $known, true)) {
+        // Soft-allow with a flag — store anyway so admins aren't blocked by a
+        // stale catalog, but tell them on redirect.
+        setting_set(llm_model_setting_key($provider), $model);
+        $_SESSION['admin_settings_flash'] = ['kind' => 'warn', 'message' => 'saved_unknown'];
+    } else {
+        setting_set(llm_model_setting_key($provider), $model);
+        $_SESSION['admin_settings_flash'] = ['kind' => 'ok', 'message' => 'saved'];
+    }
+    audit('admin.llm.model.set', (int) current_doctor()['id'], null, ['provider' => $provider, 'model' => $model]);
+    redirect('/admin/settings?provider=' . urlencode($provider));
 });
 
 route('GET', '/admin/doctors/{id}', function (string $id) {
@@ -316,8 +375,7 @@ route('GET', '/admin/doctors/{id}', function (string $id) {
         'SELECT * FROM audit_logs WHERE doctor_id = ? ORDER BY created_at DESC LIMIT 100',
         [$did]
     );
-    $usage = aggregate_token_usage_by_doctor()[$did]
-        ?? ['input_tokens' => 0, 'output_tokens' => 0, 'calls' => 0, 'by_model' => []];
+    $usage = aggregate_token_usage($did, 30);
     render('admin_doctor', [
         'doctor' => $admin,
         'target' => $target,

@@ -66,6 +66,34 @@ function llm_model_label(): string {
 }
 
 /**
+ * Models the admin can pick from, for a given provider (defaults to the
+ * active provider). Returns a list of {id,label,description,source} with
+ * 'source' = "api" when fetched live (Gemini) or "fallback" when hardcoded.
+ *
+ * @return array<int, array{id: string, label: string, description: ?string, source: string}>
+ */
+function llm_list_models(?string $provider = null): array {
+    return match ($provider ?? llm_provider()) {
+        'openai' => openai_list_models(),
+        'anthropic' => anthropic_list_models(),
+        'gemini' => gemini_list_models(),
+        default => [],
+    };
+}
+
+/** Setting-key used to override the model for the given provider. */
+function llm_model_setting_key(string $provider): string {
+    return 'llm.' . $provider . '.model';
+}
+
+/** True iff the active model came from the DB override rather than env/default. */
+function llm_model_is_overridden(?string $provider = null): bool {
+    $p = $provider ?? llm_provider();
+    $v = setting_get(llm_model_setting_key($p));
+    return $v !== null && $v !== '';
+}
+
+/**
  * @param array{system: string, messages: array<int, array{role: string, content: string}>, max_tokens?: int, temperature?: float, json_mode?: bool} $opts
  */
 function llm_complete(array $opts): string {
@@ -111,12 +139,39 @@ function http_post_json(string $url, array $body, array $headers = [], int $time
     ]);
     $resp = curl_exec($ch);
     if ($resp === false) {
-        $err = curl_error($ch);
-        curl_close($ch);
-        throw new RuntimeException("curl error: $err");
+        throw new RuntimeException('curl error: ' . curl_error($ch));
     }
     $status = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
+    $decoded = json_decode((string) $resp, true);
+    if ($status >= 400) {
+        $msg = is_array($decoded) ? json_encode($decoded) : (string) $resp;
+        throw new RuntimeException("HTTP $status from $url: " . substr((string) $msg, 0, 2000));
+    }
+    if (!is_array($decoded)) {
+        throw new RuntimeException("invalid JSON response from $url");
+    }
+    return $decoded;
+}
+
+/**
+ * GET JSON via curl. Returns decoded JSON array on success, throws on HTTP error.
+ *
+ * @throws RuntimeException
+ */
+function http_get_json(string $url, array $headers = [], int $timeout = 30): array {
+    $ch = curl_init($url);
+    if ($ch === false) throw new RuntimeException('curl_init failed');
+    curl_setopt_array($ch, [
+        CURLOPT_HTTPHEADER => array_merge(['Accept: application/json'], $headers),
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_TIMEOUT => $timeout,
+        CURLOPT_CONNECTTIMEOUT => 10,
+    ]);
+    $resp = curl_exec($ch);
+    if ($resp === false) {
+        throw new RuntimeException('curl error: ' . curl_error($ch));
+    }
+    $status = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $decoded = json_decode((string) $resp, true);
     if ($status >= 400) {
         $msg = is_array($decoded) ? json_encode($decoded) : (string) $resp;
