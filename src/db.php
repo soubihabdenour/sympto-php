@@ -66,8 +66,6 @@ function db_init(): void {
             invite_expires_at TEXT,
             created_at TEXT NOT NULL DEFAULT (datetime('now'))
         );
-        CREATE INDEX IF NOT EXISTS idx_doctors_tenant ON doctors(tenant_id);
-        CREATE INDEX IF NOT EXISTS idx_doctors_invite ON doctors(invite_token);
         CREATE TABLE IF NOT EXISTS cases (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             doctor_id INTEGER NOT NULL REFERENCES doctors(id) ON DELETE CASCADE,
@@ -149,10 +147,20 @@ function db_init(): void {
     SQL);
 
     // ---------------- Idempotent column migrations for pre-tenancy DBs ----------------
+    // These must run BEFORE creating indexes that reference the new columns,
+    // because on a legacy single-tenant DB the `doctors` table already exists
+    // (so CREATE TABLE IF NOT EXISTS doctors above is a no-op) and the new
+    // columns aren't there yet.
     db_add_column_if_missing('doctors', 'tenant_id', 'INTEGER REFERENCES tenants(id) ON DELETE CASCADE');
     db_add_column_if_missing('doctors', 'active', 'INTEGER NOT NULL DEFAULT 1');
     db_add_column_if_missing('doctors', 'invite_token', 'TEXT');
     db_add_column_if_missing('doctors', 'invite_expires_at', 'TEXT');
+
+    // Indexes on the columns above — safe to create now that the columns exist.
+    $pdo->exec(
+        "CREATE INDEX IF NOT EXISTS idx_doctors_tenant ON doctors(tenant_id);
+         CREATE INDEX IF NOT EXISTS idx_doctors_invite ON doctors(invite_token);"
+    );
 
     // ---------------- Seed plan catalog ----------------
     seed_plans($pdo);
