@@ -90,7 +90,13 @@
   },
   "Agents": {
     "title": "Fachagenten",
-    "sub": "Übersicht der Fachprofile. Jeder Agent hat eine eigene Pflicht-Kontextliste und integrierte Warnsignal-Erkennung."
+    "sub": "Übersicht der Fachprofile. Jeder Agent hat eine eigene Pflicht-Kontextliste, integrierte Warnsignal-Erkennung und eine Bibliothek validierter Entscheidungsregeln.",
+    "searchPlaceholder": "Suche nach Fachgebiet, Symptom, Score …",
+    "checklist": "Pflicht-Kontext",
+    "redFlags": "Warnsignale",
+    "tools": "Entscheidungsregeln",
+    "startCase": "Fall mit diesem Agenten starten",
+    "noResults": "Keine Agenten passen zu Ihrer Suche."
   },
   "NewCase": {
     "title": "Neuer Fall",

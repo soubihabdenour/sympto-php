@@ -56,11 +56,22 @@ function build_case_user_message(array $opts): string {
     if (($opts['task'] ?? 'report') === 'report') {
         $schema = REPORT_JSON_SCHEMA_DESCRIPTION;
         $safety = $opts['safety_disclaimer'];
-        return "You will produce a structured clinical decision-support report.\n\nPATIENT / CLINICAL CONTEXT\n{$context}\n\nUPLOADED DOCUMENTS (extracted text excerpts)\n{$docs}\n\nRESEARCH SOURCES PROVIDED TO YOU\n{$research}\n\nINSTRUCTIONS\n1. First decide whether you have enough information for a confident report.\n   - If important context is missing for this specialty, set \"needsFollowUp\": true and populate \"followUpQuestions\" with specific items. You may still fill out partial sections, but mark \"uncertainty\" accordingly.\n2. Output ONLY a single JSON object that matches this schema, with no surrounding prose, no markdown, and no code fences:\n{$schema}\n3. The \"safetyDisclaimer\" field must be exactly:\n\"{$safety}\"\n4. For \"citations\", include only sources that appear in the RESEARCH SOURCES PROVIDED TO YOU section above. Do not invent any. If none were provided, return an empty array and explicitly say so in \"evidenceSummary\".";
+        $allowedSources = build_allowed_sources_block($opts['research']);
+        return "You will produce a structured clinical decision-support report.\n\nPATIENT / CLINICAL CONTEXT\n{$context}\n\nUPLOADED DOCUMENTS (extracted text excerpts)\n{$docs}\n\nRESEARCH SOURCES PROVIDED TO YOU\n{$research}\n\nINSTRUCTIONS\n1. First decide whether you have enough information for a confident report.\n   - If important context is missing for this specialty, set \"needsFollowUp\": true and populate \"followUpQuestions\" with specific items. You may still fill out partial sections, but mark \"uncertainty\" accordingly.\n   - Apply the validated clinical decision rules listed in your system prompt when their inputs are present. When you reference a score, name it and give the numeric or categorical result.\n2. Output ONLY a single JSON object that matches this schema. The first character of your reply MUST be '{' and the last MUST be '}'. No surrounding prose, no markdown, no code fences, no commentary.\n{$schema}\n3. The \"safetyDisclaimer\" field must be exactly:\n\"{$safety}\"\n4. For \"citations\", include only sources from this allowed list (match the title exactly):\n{$allowedSources}\nDo not invent any source. If the allowed list is empty, return an empty \"citations\" array and explicitly say so in \"evidenceSummary\".\n5. \"differentialDiagnosis\" must be ordered by likelihood (high → medium → low). \"evidenceAgainst\" must be filled when low likelihood is chosen.\n6. \"recommendedTests\" must be specific (modality, body region, with/without contrast, what you are looking for) — not generic.";
     }
 
     $doctorMsg = $opts['doctor_message'] ?? '';
     return "You are continuing a case discussion with the doctor. The current case context is below for grounding. Reply concisely and clinically.\n\nPATIENT / CLINICAL CONTEXT\n{$context}\n\nUPLOADED DOCUMENTS (extracted text excerpts)\n{$docs}\n\nRESEARCH SOURCES PROVIDED TO YOU\n{$research}\n\nDOCTOR'S MESSAGE\n{$doctorMsg}";
+}
+
+function build_allowed_sources_block(array $research): string {
+    if (!$research) return '(no allowed sources — citations must be an empty array)';
+    $lines = [];
+    foreach ($research as $i => $r) {
+        $n = $i + 1;
+        $lines[] = "[{$n}] title=\"{$r['title']}\" source=\"{$r['source']}\"" . (!empty($r['url']) ? " url=\"{$r['url']}\"" : '');
+    }
+    return implode("\n", $lines);
 }
 
 /**
@@ -97,6 +108,8 @@ function generate_report(array $opts): array {
         'safety_disclaimer' => $safety,
     ]);
 
+    llm_clear_last_usage();
+    $usageTotal = ['input_tokens' => 0, 'output_tokens' => 0, 'attempts' => 0];
     try {
         $raw = llm_complete([
             'system' => $system,
@@ -105,11 +118,43 @@ function generate_report(array $opts): array {
             'temperature' => 0.2,
             'json_mode' => true,
         ]);
+        $usageTotal = accumulate_usage($usageTotal);
     } catch (LLMUnavailableError $e) {
         return demo_report($spec, $opts['ctx'], $research, $locale);
     }
 
     $parsed = safe_parse_report($raw);
+    // Retry once with a stricter "fix the JSON" instruction if first parse fails.
+    if ($parsed === null) {
+        try {
+            $raw2 = llm_complete([
+                'system' => $system,
+                'messages' => [
+                    ['role' => 'user', 'content' => $userMsg],
+                    ['role' => 'assistant', 'content' => $raw],
+                    ['role' => 'user', 'content' => "Your previous reply could not be parsed as JSON. Re-emit the SAME analysis as a single JSON object that matches the schema. First character must be '{', last must be '}'. No prose. No markdown. No code fences."],
+                ],
+                'max_tokens' => 3500,
+                'temperature' => 0.1,
+                'json_mode' => true,
+            ]);
+            $usageTotal = accumulate_usage($usageTotal);
+            $parsed = safe_parse_report($raw2);
+            if ($parsed !== null) $raw = $raw2;
+        } catch (Throwable $e) {
+            error_log('orchestrator JSON retry failed: ' . $e->getMessage());
+        }
+    }
+
+    // Make total usage from this call (across retries) the value llm_last_usage() returns,
+    // so the route handler can audit a single combined number.
+    llm_set_last_usage(
+        (string) (llm_last_usage()['provider'] ?? llm_provider()),
+        (string) (llm_last_usage()['model'] ?? llm_model()),
+        $usageTotal['input_tokens'],
+        $usageTotal['output_tokens']
+    );
+
     if ($parsed === null) {
         $u = unstructured_fallback($locale);
         return [
@@ -136,11 +181,39 @@ function generate_report(array $opts): array {
         ];
     }
 
+    // Enforce: any citation the model returned must match one of the research
+    // sources we actually gave it. Drop hallucinated citations rather than
+    // letting them slip through with a "looks legitimate" title.
+    $parsed['citations'] = filter_citations_against_allowed($parsed['citations'] ?? [], $research);
     $parsed['safetyDisclaimer'] = $safety;
     $parsed['generatedAt'] = gmdate('c');
     $parsed['specialtyId'] = $spec['id'];
     $parsed['model'] = llm_model_label();
     return $parsed;
+}
+
+function filter_citations_against_allowed(array $citations, array $allowed): array {
+    if (!$citations) return [];
+    if (!$allowed) return []; // nothing was provided → no citations allowed
+    $norm = fn(string $s) => trim(strtolower(preg_replace('/\s+/', ' ', $s) ?? ''));
+    $allowedIndex = [];
+    foreach ($allowed as $a) {
+        $allowedIndex[$norm((string) ($a['title'] ?? ''))] = $a;
+    }
+    $out = [];
+    foreach ($citations as $c) {
+        $title = (string) ($c['title'] ?? '');
+        if ($title === '') continue;
+        $key = $norm($title);
+        if (!isset($allowedIndex[$key])) continue; // hallucinated → drop
+        $match = $allowedIndex[$key];
+        $out[] = [
+            'title' => $match['title'],
+            'source' => $match['source'] ?? ($c['source'] ?? ''),
+            'url' => $match['url'] ?? ($c['url'] ?? null),
+        ];
+    }
+    return $out;
 }
 
 function chat_with_agent(array $opts): string {
@@ -178,6 +251,16 @@ function chat_with_agent(array $opts): string {
     } catch (LLMUnavailableError $e) {
         return demo_chat_reply($spec, $opts['doctor_message'], $locale);
     }
+}
+
+function accumulate_usage(array $total): array {
+    $last = llm_last_usage();
+    if ($last) {
+        $total['input_tokens']  += (int) ($last['input_tokens'] ?? 0);
+        $total['output_tokens'] += (int) ($last['output_tokens'] ?? 0);
+    }
+    $total['attempts'] = ($total['attempts'] ?? 0) + 1;
+    return $total;
 }
 
 function safe_parse_report(string $raw): ?array {

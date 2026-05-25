@@ -33,6 +33,8 @@ function openai_adapter_complete(array $opts): string {
         $body,
         ['Authorization: Bearer ' . $key]
     );
+    $usage = $res['usage'] ?? [];
+    llm_set_last_usage('openai', $model, (int) ($usage['prompt_tokens'] ?? 0), (int) ($usage['completion_tokens'] ?? 0));
     return trim((string) ($res['choices'][0]['message']['content'] ?? ''));
 }
 

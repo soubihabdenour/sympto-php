@@ -34,7 +34,11 @@ ob_start();
             </h2>
         </div>
         <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
-            <?php $select_form_name = 'specialty_id'; $selectedId = $_POST['specialty_id'] ?? null;
+            <?php
+            $select_form_name = 'specialty_id';
+            // Pre-select priority: POST (form re-render after error) > GET (deep-link from /agents).
+            $selectedId = $_POST['specialty_id'] ?? $_GET['specialty_id'] ?? null;
+            if ($selectedId !== null && !get_specialty($selectedId)) $selectedId = null;
             foreach (specialties() as $spec):
                 $selected = $spec['id'] === $selectedId;
                 require TEMPLATES_DIR . '/components/agent_card.php';

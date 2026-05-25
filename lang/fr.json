@@ -90,7 +90,13 @@
   },
   "Agents": {
     "title": "Agents spécialistes",
-    "sub": "Parcourez les profils de spécialistes. Chaque agent dispose de sa propre checklist de contexte requis et d'un dépistage des signes d'alerte intégrés."
+    "sub": "Parcourez les profils de spécialistes. Chaque agent dispose de sa propre checklist de contexte requis, d'un dépistage des signes d'alerte et d'une bibliothèque de règles de décision validées.",
+    "searchPlaceholder": "Recherche par spécialité, symptôme, score…",
+    "checklist": "Contexte requis",
+    "redFlags": "Signes d'alerte",
+    "tools": "Règles de décision",
+    "startCase": "Démarrer un dossier avec cet agent",
+    "noResults": "Aucun agent ne correspond à votre recherche."
   },
   "NewCase": {
     "title": "Nouveau dossier",

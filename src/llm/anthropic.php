@@ -44,6 +44,8 @@ function anthropic_adapter_complete(array $opts): string {
             $text .= $block['text'];
         }
     }
+    $usage = $res['usage'] ?? [];
+    llm_set_last_usage('anthropic', $model, (int) ($usage['input_tokens'] ?? 0), (int) ($usage['output_tokens'] ?? 0));
     return trim($text);
 }
 

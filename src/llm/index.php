@@ -15,6 +15,31 @@ require __DIR__ . '/gemini.php';
 
 class LLMUnavailableError extends RuntimeException {}
 
+/**
+ * Token usage from the most recent llm_complete() call.
+ * Adapters call llm_set_last_usage() after a successful response; the
+ * orchestrator reads llm_last_usage() to log cost into the audit trail.
+ *
+ * @var array{provider:string, model:string, input_tokens:int, output_tokens:int}|null
+ */
+function llm_last_usage(): ?array {
+    static $shared = null;
+    $args = func_get_args();
+    if ($args) { $shared = $args[0]; return null; }
+    return $shared;
+}
+
+function llm_set_last_usage(string $provider, string $model, int $input, int $output): void {
+    llm_last_usage([
+        'provider' => $provider,
+        'model' => $model,
+        'input_tokens' => $input,
+        'output_tokens' => $output,
+    ]);
+}
+
+function llm_clear_last_usage(): void { llm_last_usage(null); }
+
 function llm_provider(): string {
     $raw = strtolower(trim((string) env('LLM_PROVIDER', 'openai')));
     return in_array($raw, ['openai', 'anthropic', 'gemini'], true) ? $raw : 'openai';

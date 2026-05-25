@@ -255,6 +255,7 @@ route('POST', '/cases/{id}/messages', function (string $id) {
     if ($hist) array_pop($hist);
     $c = db_fetch('SELECT specialty_id FROM cases WHERE id = ?', [$cid]);
     $locale = current_locale();
+    llm_clear_last_usage();
     try {
         $reply = chat_with_agent([
             'specialty_id' => $c['specialty_id'],
@@ -270,6 +271,7 @@ route('POST', '/cases/{id}/messages', function (string $id) {
     }
     db_insert('INSERT INTO case_messages (case_id, role, content) VALUES (?, ?, ?)', [$cid, 'agent', $reply]);
     db_exec('UPDATE cases SET status = ?, updated_at = datetime(\'now\') WHERE id = ?', ['IN_PROGRESS', $cid]);
+    audit('message.reply', (int) $d['id'], $cid, ['role' => 'agent', 'usage' => llm_last_usage()]);
     json_response(['ok' => true, 'reply' => $reply]);
 });
 
@@ -307,6 +309,11 @@ route('POST', '/cases/{id}/report', function (string $id) {
         'UPDATE cases SET status = ?, updated_at = datetime(\'now\') WHERE id = ?',
         [!empty($report['needsFollowUp']) ? 'IN_PROGRESS' : 'REPORTED', $cid]
     );
-    audit('report.generate', (int) $d['id'], $cid, ['needsFollowUp' => $report['needsFollowUp'] ?? null, 'model' => $report['model'] ?? null]);
+    $usage = llm_last_usage();
+    audit('report.generate', (int) $d['id'], $cid, [
+        'needsFollowUp' => $report['needsFollowUp'] ?? null,
+        'model' => $report['model'] ?? null,
+        'usage' => $usage,
+    ]);
     json_response(['ok' => true, 'report' => $report]);
 });

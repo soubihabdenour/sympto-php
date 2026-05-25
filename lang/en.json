@@ -90,7 +90,13 @@
   },
   "Agents": {
     "title": "Specialist agents",
-    "sub": "Browse the specialist personas. Each agent has its own required-context checklist and red-flag screening built in."
+    "sub": "Browse the specialist personas. Each agent has its own required-context checklist, red-flag screening, and validated decision-rule library built in.",
+    "searchPlaceholder": "Search by specialty, symptom, scoring tool…",
+    "checklist": "Required context",
+    "redFlags": "Red flags",
+    "tools": "Decision rules",
+    "startCase": "Start a case with this agent",
+    "noResults": "No agents match your search."
   },
   "NewCase": {
     "title": "New case",

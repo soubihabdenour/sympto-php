@@ -38,6 +38,8 @@ function gemini_adapter_complete(array $opts): string {
     foreach ((array) ($res['candidates'][0]['content']['parts'] ?? []) as $p) {
         if (isset($p['text'])) $text .= $p['text'];
     }
+    $usage = $res['usageMetadata'] ?? [];
+    llm_set_last_usage('gemini', $model, (int) ($usage['promptTokenCount'] ?? 0), (int) ($usage['candidatesTokenCount'] ?? 0));
     return trim($text);
 }
 
