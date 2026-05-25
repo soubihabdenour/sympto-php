@@ -53,7 +53,6 @@ require __DIR__ . '/i18n.php';
 require __DIR__ . '/auth.php';
 require __DIR__ . '/csrf.php';
 require __DIR__ . '/audit.php';
-require __DIR__ . '/tenancy.php';
 require __DIR__ . '/specialties.php';
 require __DIR__ . '/llm/index.php';
 require __DIR__ . '/research/search.php';

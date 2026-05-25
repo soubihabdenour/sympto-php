@@ -14,9 +14,6 @@ $rows = [
     ['icon' => 'stethoscope', 'label' => t('Settings.specialty'), 'value' => $doctor['specialty'] ?? '—'],
     ['icon' => 'shield',  'label' => t('Settings.role'),       'value' => $doctor['role']],
 ];
-
-$tenant = current_tenant($doctor);
-$sub = current_subscription($doctor);
 ob_start();
 ?>
 <div class="max-w-3xl mx-auto px-4 sm:px-6 py-5 sm:py-6 space-y-5">
@@ -27,38 +24,6 @@ ob_start();
         </h1>
         <p class="text-sm text-ink-500 mt-1"><?= h(t('Settings.sub')) ?></p>
     </div>
-
-    <?php if ($tenant): ?>
-    <div class="card p-5">
-        <h2 class="section-title mb-4">
-            <?= icon('folder', 'w-4 h-4 text-brand-700') ?>
-            <?= h(t('Settings.organization')) ?>
-        </h2>
-        <dl class="divide-y divide-ink-100">
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-1 sm:gap-3 py-2.5 sm:items-center text-sm">
-                <dt class="text-ink-500 flex items-center gap-2"><?= icon('folder', 'w-4 h-4 text-ink-400') ?> <?= h(t('Settings.orgName')) ?></dt>
-                <dd class="sm:col-span-2 text-ink-900 font-medium break-words"><?= h($tenant['name']) ?></dd>
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-1 sm:gap-3 py-2.5 sm:items-center text-sm">
-                <dt class="text-ink-500 flex items-center gap-2"><?= icon('sparkles', 'w-4 h-4 text-ink-400') ?> <?= h(t('Settings.plan')) ?></dt>
-                <dd class="sm:col-span-2 text-ink-900 font-medium">
-                    <?= h($sub['plan_name'] ?? '—') ?>
-                    <?php if ($sub): ?>
-                        <span class="pill <?= $sub['status'] === 'active' ? 'bg-vital-50 text-vital-700' : ($sub['status'] === 'trial' ? 'bg-amber-50 text-amber-700' : 'bg-ink-100 text-ink-700') ?> ml-1">
-                            <?= h($sub['status']) ?>
-                        </span>
-                    <?php endif; ?>
-                </dd>
-            </div>
-        </dl>
-        <?php if (is_tenant_admin($doctor)): ?>
-            <div class="mt-4 flex gap-2">
-                <a href="/team" class="btn-secondary text-sm"><?= icon('users', 'w-4 h-4') ?> <?= h(t('Nav.team')) ?></a>
-                <a href="/billing" class="btn-secondary text-sm"><?= icon('clipboard', 'w-4 h-4') ?> <?= h(t('Nav.billing')) ?></a>
-            </div>
-        <?php endif; ?>
-    </div>
-    <?php endif; ?>
 
     <div class="card p-5">
         <h2 class="section-title mb-4">

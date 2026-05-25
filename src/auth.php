@@ -4,24 +4,8 @@ declare(strict_types=1);
 function current_doctor(): ?array {
     if (empty($_SESSION['doctor_id'])) return null;
     static $cache = null;
-    if ($cache !== null && (int) $cache['id'] === (int) $_SESSION['doctor_id']) return $cache;
+    if ($cache !== null && $cache['id'] === $_SESSION['doctor_id']) return $cache;
     $cache = db_fetch('SELECT * FROM doctors WHERE id = ?', [$_SESSION['doctor_id']]);
-    // Auto-logout if the account was deactivated or its tenant was suspended.
-    if ($cache) {
-        if ((int) ($cache['active'] ?? 1) === 0) {
-            logout_doctor();
-            $cache = null;
-            return null;
-        }
-        if (!empty($cache['tenant_id'])) {
-            $tenant = db_fetch('SELECT status FROM tenants WHERE id = ?', [$cache['tenant_id']]);
-            if ($tenant && ($tenant['status'] ?? 'active') !== 'active' && ($cache['role'] ?? '') !== 'SUPER_ADMIN') {
-                logout_doctor();
-                $cache = null;
-                return null;
-            }
-        }
-    }
     return $cache;
 }
 

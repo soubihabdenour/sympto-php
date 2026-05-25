@@ -21,15 +21,6 @@ ob_start();
             <form method="post" action="/register" class="mt-6 space-y-4">
                 <?= csrf_field() ?>
                 <div>
-                    <label class="label"><?= h(t('Register.organization')) ?></label>
-                    <div class="relative">
-                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-ink-400">
-                            <?= icon('folder', 'w-4 h-4') ?>
-                        </span>
-                        <input name="organization" required class="input input-with-icon" placeholder="<?= h(t('Register.organizationPh')) ?>">
-                    </div>
-                </div>
-                <div>
                     <label class="label"><?= h(t('Register.fullName')) ?></label>
                     <div class="relative">
                         <span class="absolute left-3 top-1/2 -translate-y-1/2 text-ink-400">
