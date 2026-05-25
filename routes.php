@@ -15,12 +15,23 @@ route('GET', '/login', function () {
 
 route('POST', '/login', function () {
     csrf_check();
-    $email = trim((string) ($_POST['email'] ?? ''));
+    $email = strtolower(trim((string) ($_POST['email'] ?? '')));
     $pw = (string) ($_POST['password'] ?? '');
     $doctor = db_fetch('SELECT * FROM doctors WHERE email = ?', [$email]);
-    if (!$doctor || !password_verify($pw, $doctor['password_hash'])) {
+    if (!$doctor || !password_verify($pw, (string) $doctor['password_hash'])) {
         render('login', ['error' => t('Login.failed')]);
         return;
+    }
+    if ((int) ($doctor['active'] ?? 1) === 0) {
+        render('login', ['error' => t('Login.accountDisabled')]);
+        return;
+    }
+    if (!empty($doctor['tenant_id'])) {
+        $t = db_fetch('SELECT status FROM tenants WHERE id = ?', [$doctor['tenant_id']]);
+        if ($t && ($t['status'] ?? 'active') !== 'active' && ($doctor['role'] ?? '') !== 'SUPER_ADMIN') {
+            render('login', ['error' => t('Login.tenantSuspended')]);
+            return;
+        }
     }
     login_doctor((int) $doctor['id']);
     audit('auth.login', (int) $doctor['id']);
@@ -34,26 +45,36 @@ route('GET', '/register', function () {
 
 route('POST', '/register', function () {
     csrf_check();
-    $email = trim((string) ($_POST['email'] ?? ''));
+    $org = trim((string) ($_POST['organization'] ?? ''));
+    $email = strtolower(trim((string) ($_POST['email'] ?? '')));
     $name = trim((string) ($_POST['full_name'] ?? ''));
     $pw = (string) ($_POST['password'] ?? '');
     $license = trim((string) ($_POST['license_id'] ?? ''));
     $spec = trim((string) ($_POST['specialty'] ?? ''));
-    if ($email === '' || $name === '' || strlen($pw) < 8) {
+    if ($org === '' || $email === '' || $name === '' || strlen($pw) < 8) {
         render('register', ['error' => t('Register.failed')]);
         return;
     }
-    $exists = db_fetch('SELECT id FROM doctors WHERE email = ?', [$email]);
-    if ($exists) {
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         render('register', ['error' => t('Register.failed')]);
         return;
     }
-    $id = db_insert(
-        'INSERT INTO doctors (email, full_name, password_hash, license_id, specialty, role) VALUES (?, ?, ?, ?, ?, ?)',
-        [$email, $name, password_hash($pw, PASSWORD_DEFAULT), $license ?: null, $spec ?: null, 'DOCTOR']
-    );
-    login_doctor($id);
-    audit('auth.register', $id);
+    if (db_fetch('SELECT id FROM doctors WHERE email = ?', [$email])) {
+        render('register', ['error' => t('Register.failed')]);
+        return;
+    }
+    try {
+        $r = create_tenant_with_admin($org, [
+            'email' => $email, 'full_name' => $name, 'password' => $pw,
+            'license_id' => $license ?: null, 'specialty' => $spec ?: null,
+        ]);
+    } catch (Throwable $e) {
+        error_log('create_tenant_with_admin failed: ' . $e->getMessage());
+        render('register', ['error' => t('Register.failed')]);
+        return;
+    }
+    login_doctor($r['doctor_id']);
+    audit('tenant.create', $r['doctor_id'], null, ['tenant_id' => $r['tenant_id'], 'org' => $org]);
     redirect('/dashboard');
 });
 
@@ -75,10 +96,48 @@ route('POST', '/api/locale', function () {
     json_response(['ok' => true]);
 });
 
+// ---------------- Invitation acceptance ----------------
+
+route('GET', '/invite/{token}', function (string $token) {
+    $invite = find_pending_invite($token);
+    if (!$invite) {
+        render('invite_invalid');
+        return;
+    }
+    $tenant = get_tenant((int) $invite['tenant_id']);
+    render('invite', ['invite' => $invite, 'tenant' => $tenant, 'error' => null]);
+});
+
+route('POST', '/invite/{token}', function (string $token) {
+    csrf_check();
+    $invite = find_pending_invite($token);
+    if (!$invite) {
+        render('invite_invalid');
+        return;
+    }
+    $tenant = get_tenant((int) $invite['tenant_id']);
+    $name = trim((string) ($_POST['full_name'] ?? ''));
+    $pw = (string) ($_POST['password'] ?? '');
+    $license = trim((string) ($_POST['license_id'] ?? ''));
+    $spec = trim((string) ($_POST['specialty'] ?? ''));
+    if ($name === '' || strlen($pw) < 8) {
+        render('invite', ['invite' => $invite, 'tenant' => $tenant, 'error' => t('Register.failed')]);
+        return;
+    }
+    db_exec(
+        'UPDATE doctors SET full_name = ?, password_hash = ?, license_id = ?, specialty = ?, active = 1, invite_token = NULL, invite_expires_at = NULL WHERE id = ?',
+        [$name, password_hash($pw, PASSWORD_DEFAULT), $license ?: null, $spec ?: null, (int) $invite['id']]
+    );
+    login_doctor((int) $invite['id']);
+    audit('invite.accept', (int) $invite['id'], null, ['tenant_id' => $invite['tenant_id']]);
+    redirect('/dashboard');
+});
+
 // ---------------- Authed pages ----------------
 
 route('GET', '/dashboard', function () {
     $d = require_doctor();
+    if (is_super_admin($d)) redirect('/admin');
     $cases = db_all(
         'SELECT c.*,
             (SELECT COUNT(*) FROM medical_documents WHERE case_id = c.id) AS docs_count,
@@ -102,12 +161,14 @@ route('GET', '/settings', function () {
 
 route('GET', '/cases/new', function () {
     $d = require_doctor();
+    if (is_super_admin($d)) redirect('/admin');
     render('new_case', ['doctor' => $d, 'error' => null]);
 });
 
 route('POST', '/cases', function () {
     $d = require_doctor();
     csrf_check();
+    if (is_super_admin($d)) { http_response_code(403); echo '<h1>403</h1>'; exit; }
     $title = trim((string) ($_POST['title'] ?? ''));
     $sid = (string) ($_POST['specialty_id'] ?? '');
     if ($title === '') { render('new_case', ['doctor' => $d, 'error' => t('NewCase.needTitle')]); return; }
@@ -251,7 +312,6 @@ route('POST', '/cases/{id}/messages', function (string $id) {
         [$cid]
     );
     $hist = db_all('SELECT role, content FROM case_messages WHERE case_id = ? ORDER BY created_at ASC', [$cid]);
-    // Drop the just-inserted doctor turn (it's passed via doctor_message)
     if ($hist) array_pop($hist);
     $c = db_fetch('SELECT specialty_id FROM cases WHERE id = ?', [$cid]);
     $locale = current_locale();
@@ -280,6 +340,11 @@ route('POST', '/cases/{id}/report', function (string $id) {
     csrf_check();
     $cid = (int) $id;
     if (!ensure_case_access($cid, (int) $d['id'])) not_found();
+    // Plan enforcement.
+    if (!empty($d['tenant_id'])) {
+        $block = check_can_generate_report((int) $d['tenant_id']);
+        if ($block) json_response(['error' => $block['message']], 402);
+    }
     $c = db_fetch('SELECT * FROM cases WHERE id = ?', [$cid]);
     $patient = db_fetch('SELECT * FROM patient_data WHERE case_id = ?', [$cid]) ?? [];
     $docs = db_all(
@@ -309,11 +374,221 @@ route('POST', '/cases/{id}/report', function (string $id) {
         'UPDATE cases SET status = ?, updated_at = datetime(\'now\') WHERE id = ?',
         [!empty($report['needsFollowUp']) ? 'IN_PROGRESS' : 'REPORTED', $cid]
     );
-    $usage = llm_last_usage();
     audit('report.generate', (int) $d['id'], $cid, [
         'needsFollowUp' => $report['needsFollowUp'] ?? null,
         'model' => $report['model'] ?? null,
-        'usage' => $usage,
+        'usage' => llm_last_usage(),
     ]);
     json_response(['ok' => true, 'report' => $report]);
+});
+
+// ---------------- Tenant admin: team management ----------------
+
+route('GET', '/team', function () {
+    $d = require_admin();
+    if (is_super_admin($d) && empty($d['tenant_id'])) redirect('/admin');
+    $tenantId = (int) $d['tenant_id'];
+    $members = db_all(
+        'SELECT id, email, full_name, role, active, invite_token, invite_expires_at, created_at
+         FROM doctors WHERE tenant_id = ? ORDER BY active DESC, role ASC, full_name ASC',
+        [$tenantId]
+    );
+    render('team', [
+        'doctor' => $d,
+        'tenant' => current_tenant($d),
+        'subscription' => current_subscription($d),
+        'members' => $members,
+        'invite' => $_SESSION['flash_invite'] ?? null,
+        'error' => $_SESSION['flash_error'] ?? null,
+    ]);
+    unset($_SESSION['flash_invite'], $_SESSION['flash_error']);
+});
+
+route('POST', '/team/invite', function () {
+    $d = require_admin();
+    csrf_check();
+    if (empty($d['tenant_id'])) bad_request('admin has no tenant');
+    $tenantId = (int) $d['tenant_id'];
+    $email = strtolower(trim((string) ($_POST['email'] ?? '')));
+    $role = (string) ($_POST['role'] ?? 'DOCTOR');
+    $block = check_can_add_doctor($tenantId);
+    if ($block) { $_SESSION['flash_error'] = $block['message']; redirect('/team'); }
+    try {
+        $r = create_invitation($tenantId, (int) $d['id'], $email, $role);
+    } catch (Throwable $e) {
+        $_SESSION['flash_error'] = $e->getMessage();
+        redirect('/team');
+    }
+    $base = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https://' : 'http://') . ($_SERVER['HTTP_HOST'] ?? 'localhost');
+    $_SESSION['flash_invite'] = [
+        'email' => $r['email'],
+        'token' => $r['token'],
+        'url' => $base . '/invite/' . $r['token'],
+    ];
+    audit('team.invite', (int) $d['id'], null, ['email' => $r['email'], 'role' => $role, 'tenant_id' => $tenantId]);
+    redirect('/team');
+});
+
+route('POST', '/team/{id}/role', function (string $id) {
+    $d = require_admin();
+    csrf_check();
+    $tid = (int) $d['tenant_id'];
+    $target = db_fetch('SELECT * FROM doctors WHERE id = ? AND tenant_id = ?', [(int) $id, $tid]);
+    if (!$target) not_found();
+    if ((int) $target['id'] === (int) $d['id']) { $_SESSION['flash_error'] = 'You cannot change your own role.'; redirect('/team'); }
+    $role = (string) ($_POST['role'] ?? 'DOCTOR');
+    if (!in_array($role, ['ADMIN', 'DOCTOR'], true)) bad_request('invalid role');
+    db_exec('UPDATE doctors SET role = ? WHERE id = ?', [$role, (int) $target['id']]);
+    audit('team.role_change', (int) $d['id'], null, ['target' => $target['id'], 'role' => $role]);
+    redirect('/team');
+});
+
+route('POST', '/team/{id}/deactivate', function (string $id) {
+    $d = require_admin();
+    csrf_check();
+    $tid = (int) $d['tenant_id'];
+    $target = db_fetch('SELECT * FROM doctors WHERE id = ? AND tenant_id = ?', [(int) $id, $tid]);
+    if (!$target) not_found();
+    if ((int) $target['id'] === (int) $d['id']) { $_SESSION['flash_error'] = 'You cannot deactivate yourself.'; redirect('/team'); }
+    db_exec('UPDATE doctors SET active = 0 WHERE id = ?', [(int) $target['id']]);
+    audit('team.deactivate', (int) $d['id'], null, ['target' => $target['id']]);
+    redirect('/team');
+});
+
+route('POST', '/team/{id}/reactivate', function (string $id) {
+    $d = require_admin();
+    csrf_check();
+    $tid = (int) $d['tenant_id'];
+    $target = db_fetch('SELECT * FROM doctors WHERE id = ? AND tenant_id = ?', [(int) $id, $tid]);
+    if (!$target) not_found();
+    $block = check_can_add_doctor($tid);
+    if ($block) { $_SESSION['flash_error'] = $block['message']; redirect('/team'); }
+    db_exec('UPDATE doctors SET active = 1 WHERE id = ?', [(int) $target['id']]);
+    audit('team.reactivate', (int) $d['id'], null, ['target' => $target['id']]);
+    redirect('/team');
+});
+
+// ---------------- Tenant admin: billing ----------------
+
+route('GET', '/billing', function () {
+    $d = require_admin();
+    if (is_super_admin($d) && empty($d['tenant_id'])) redirect('/admin');
+    $tenant = current_tenant($d);
+    $sub = current_subscription($d);
+    render('billing', [
+        'doctor' => $d,
+        'tenant' => $tenant,
+        'subscription' => $sub,
+        'plans' => all_plans(),
+        'usage' => [
+            'doctors' => tenant_doctor_count((int) $tenant['id']),
+            'reports' => tenant_reports_this_period((int) $tenant['id']),
+            'cases' => tenant_cases_total((int) $tenant['id']),
+        ],
+        'flash' => $_SESSION['flash_billing'] ?? null,
+    ]);
+    unset($_SESSION['flash_billing']);
+});
+
+route('POST', '/billing/plan', function () {
+    $d = require_admin();
+    csrf_check();
+    $tid = (int) $d['tenant_id'];
+    $planId = (string) ($_POST['plan_id'] ?? '');
+    $plan = get_plan($planId);
+    if (!$plan) bad_request('invalid plan');
+    $status = ((int) $plan['is_trial'] === 1) ? 'trial' : 'active';
+    $trialEnds = ((int) ($plan['trial_days'] ?? 0) > 0)
+        ? gmdate('Y-m-d H:i:s', time() + 86400 * (int) $plan['trial_days'])
+        : null;
+    db_exec(
+        'UPDATE subscriptions SET plan_id = ?, status = ?, trial_ends_at = ?, current_period_start = datetime(\'now\'), current_period_end = datetime(\'now\', \'+30 days\'), updated_at = datetime(\'now\') WHERE tenant_id = ?',
+        [$planId, $status, $trialEnds, $tid]
+    );
+    audit('billing.plan_change', (int) $d['id'], null, ['tenant_id' => $tid, 'plan' => $planId]);
+    $_SESSION['flash_billing'] = 'Plan updated to ' . $plan['name'] . '.';
+    redirect('/billing');
+});
+
+// ---------------- Super-admin: tenants & plans ----------------
+
+route('GET', '/admin', function () {
+    $d = require_super_admin();
+    $tenants = db_all(
+        'SELECT t.*, s.plan_id, s.status AS sub_status, s.trial_ends_at,
+                (SELECT COUNT(*) FROM doctors WHERE tenant_id = t.id AND active = 1) AS doctor_count,
+                (SELECT COUNT(*) FROM cases c JOIN doctors dr ON dr.id = c.doctor_id WHERE dr.tenant_id = t.id) AS case_count
+         FROM tenants t LEFT JOIN subscriptions s ON s.tenant_id = t.id
+         ORDER BY t.created_at DESC'
+    );
+    $totals = [
+        'tenants' => count($tenants),
+        'doctors' => (int) db_fetch('SELECT COUNT(*) AS n FROM doctors WHERE active = 1 AND role <> \'SUPER_ADMIN\'')['n'],
+        'cases'   => (int) db_fetch('SELECT COUNT(*) AS n FROM cases')['n'],
+        'reports' => (int) db_fetch('SELECT COUNT(*) AS n FROM diagnosis_reports')['n'],
+    ];
+    render('admin_tenants', ['doctor' => $d, 'tenants' => $tenants, 'totals' => $totals, 'plans' => all_plans()]);
+});
+
+route('GET', '/admin/tenants/{id}', function (string $id) {
+    $d = require_super_admin();
+    $tenant = get_tenant((int) $id);
+    if (!$tenant) not_found();
+    $sub = get_subscription_for_tenant((int) $id);
+    $members = db_all(
+        'SELECT id, email, full_name, role, active, created_at FROM doctors WHERE tenant_id = ? ORDER BY role ASC, full_name ASC',
+        [(int) $id]
+    );
+    $usage = [
+        'doctors' => tenant_doctor_count((int) $id),
+        'reports' => tenant_reports_this_period((int) $id),
+        'cases'   => tenant_cases_total((int) $id),
+    ];
+    render('admin_tenant_view', [
+        'doctor' => $d,
+        'tenant' => $tenant,
+        'subscription' => $sub,
+        'plans' => all_plans(),
+        'members' => $members,
+        'usage' => $usage,
+    ]);
+});
+
+route('POST', '/admin/tenants/{id}/plan', function (string $id) {
+    require_super_admin();
+    csrf_check();
+    $tid = (int) $id;
+    if (!get_tenant($tid)) not_found();
+    $planId = (string) ($_POST['plan_id'] ?? '');
+    $plan = get_plan($planId);
+    if (!$plan) bad_request('invalid plan');
+    $status = ((int) $plan['is_trial'] === 1) ? 'trial' : 'active';
+    $trialEnds = ((int) ($plan['trial_days'] ?? 0) > 0)
+        ? gmdate('Y-m-d H:i:s', time() + 86400 * (int) $plan['trial_days'])
+        : null;
+    $existing = get_subscription_for_tenant($tid);
+    if ($existing) {
+        db_exec(
+            'UPDATE subscriptions SET plan_id = ?, status = ?, trial_ends_at = ?, current_period_start = datetime(\'now\'), current_period_end = datetime(\'now\', \'+30 days\'), updated_at = datetime(\'now\') WHERE tenant_id = ?',
+            [$planId, $status, $trialEnds, $tid]
+        );
+    } else {
+        db_exec(
+            'INSERT INTO subscriptions (tenant_id, plan_id, status, trial_ends_at, current_period_end) VALUES (?, ?, ?, ?, datetime(\'now\', \'+30 days\'))',
+            [$tid, $planId, $status, $trialEnds]
+        );
+    }
+    audit('admin.plan_change', (int) current_doctor()['id'], null, ['tenant_id' => $tid, 'plan' => $planId]);
+    redirect('/admin/tenants/' . $tid);
+});
+
+route('POST', '/admin/tenants/{id}/status', function (string $id) {
+    require_super_admin();
+    csrf_check();
+    $tid = (int) $id;
+    $status = (string) ($_POST['status'] ?? 'active');
+    if (!in_array($status, ['active', 'suspended'], true)) bad_request('invalid status');
+    db_exec('UPDATE tenants SET status = ? WHERE id = ?', [$status, $tid]);
+    audit('admin.tenant_status', (int) current_doctor()['id'], null, ['tenant_id' => $tid, 'status' => $status]);
+    redirect('/admin/tenants/' . $tid);
 });
