@@ -6,6 +6,9 @@ $items = [
     ['href' => '/agents',     'label' => t('Nav.agents'),    'icon' => 'agents'],
     ['href' => '/settings',   'label' => t('Nav.settings'),  'icon' => 'settings'],
 ];
+if (is_admin()) {
+    $items[] = ['href' => '/admin', 'label' => t('Nav.admin'), 'icon' => 'shield-check'];
+}
 ?>
 <aside id="sidebar"
        class="w-64 shrink-0 bg-white border-r border-ink-200 flex flex-col h-screen no-print

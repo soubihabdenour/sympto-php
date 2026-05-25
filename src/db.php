@@ -123,6 +123,20 @@ function db_init(): void {
             'DOCTOR',
         ]);
     }
+
+    // Seed admin account if no admin exists
+    $adminCount = (int) $pdo->query("SELECT COUNT(*) FROM doctors WHERE role = 'ADMIN'")->fetchColumn();
+    if ($adminCount === 0) {
+        $stmt = $pdo->prepare(
+            'INSERT INTO doctors (email, full_name, password_hash, role) VALUES (?, ?, ?, ?)'
+        );
+        $stmt->execute([
+            'admin@medagent.local',
+            'Administrator',
+            password_hash('admin123', PASSWORD_DEFAULT),
+            'ADMIN',
+        ]);
+    }
 }
 
 // Convenience query helpers

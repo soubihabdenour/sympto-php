@@ -21,6 +21,21 @@ function require_doctor_json(): array {
     return $d;
 }
 
+function is_admin(?array $doctor = null): bool {
+    $d = $doctor ?? current_doctor();
+    return $d !== null && ($d['role'] ?? '') === 'ADMIN';
+}
+
+function require_admin(): array {
+    $d = require_doctor();
+    if (!is_admin($d)) {
+        http_response_code(403);
+        echo '<h1>403 — Forbidden</h1>';
+        exit;
+    }
+    return $d;
+}
+
 function login_doctor(int $doctorId): void {
     session_regenerate_id(true);
     $_SESSION['doctor_id'] = $doctorId;

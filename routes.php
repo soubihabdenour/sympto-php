@@ -275,6 +275,58 @@ route('POST', '/cases/{id}/messages', function (string $id) {
     json_response(['ok' => true, 'reply' => $reply]);
 });
 
+// ---------------- Admin ----------------
+
+route('GET', '/admin', function () {
+    $admin = require_admin();
+    $doctors = db_all(
+        "SELECT d.id, d.email, d.full_name, d.specialty, d.role, d.created_at,
+                (SELECT COUNT(*) FROM cases WHERE doctor_id = d.id) AS cases_count,
+                (SELECT COUNT(*) FROM case_messages m JOIN cases c ON c.id = m.case_id WHERE c.doctor_id = d.id AND m.role = 'doctor') AS msgs_count,
+                (SELECT COUNT(*) FROM diagnosis_reports r JOIN cases c ON c.id = r.case_id WHERE c.doctor_id = d.id) AS reports_count,
+                (SELECT MAX(created_at) FROM audit_logs WHERE doctor_id = d.id) AS last_active
+         FROM doctors d
+         ORDER BY (d.role = 'ADMIN') ASC, d.full_name COLLATE NOCASE ASC"
+    );
+    $usageByDoctor = aggregate_token_usage_by_doctor();
+    foreach ($doctors as &$row) {
+        $u = $usageByDoctor[(int) $row['id']] ?? ['input_tokens' => 0, 'output_tokens' => 0, 'calls' => 0];
+        $row['input_tokens'] = (int) $u['input_tokens'];
+        $row['output_tokens'] = (int) $u['output_tokens'];
+        $row['llm_calls'] = (int) $u['calls'];
+    }
+    unset($row);
+    render('admin_index', ['doctor' => $admin, 'doctors' => $doctors]);
+});
+
+route('GET', '/admin/doctors/{id}', function (string $id) {
+    $admin = require_admin();
+    $did = (int) $id;
+    $target = db_fetch('SELECT * FROM doctors WHERE id = ?', [$did]);
+    if (!$target) not_found();
+    $cases = db_all(
+        'SELECT c.*,
+            (SELECT COUNT(*) FROM medical_documents WHERE case_id = c.id) AS docs_count,
+            (SELECT COUNT(*) FROM case_messages WHERE case_id = c.id) AS msgs_count,
+            (SELECT COUNT(*) FROM diagnosis_reports WHERE case_id = c.id) AS reports_count
+         FROM cases c WHERE doctor_id = ? ORDER BY updated_at DESC',
+        [$did]
+    );
+    $logs = db_all(
+        'SELECT * FROM audit_logs WHERE doctor_id = ? ORDER BY created_at DESC LIMIT 100',
+        [$did]
+    );
+    $usage = aggregate_token_usage_by_doctor()[$did]
+        ?? ['input_tokens' => 0, 'output_tokens' => 0, 'calls' => 0, 'by_model' => []];
+    render('admin_doctor', [
+        'doctor' => $admin,
+        'target' => $target,
+        'cases' => $cases,
+        'logs' => $logs,
+        'usage' => $usage,
+    ]);
+});
+
 route('POST', '/cases/{id}/report', function (string $id) {
     $d = require_doctor();
     csrf_check();

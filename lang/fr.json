@@ -30,7 +30,46 @@
     "appName": "MedAgent AI",
     "tagline": "Aide à la décision clinique",
     "signIn": "Se connecter",
-    "signOut": "Se déconnecter"
+    "signOut": "Se déconnecter",
+    "admin": "Admin"
+  },
+  "Admin": {
+    "title": "Admin · Suivi d'usage",
+    "sub": "Activité par médecin et consommation de jetons LLM.",
+    "doctorsTitle": "Médecins",
+    "doctorTitle": "{name}",
+    "casesTitle": "Dossiers",
+    "activityTitle": "Activité récente",
+    "byModelTitle": "Usage par modèle",
+    "backToList": "Retour aux médecins",
+    "joined": "Inscrit le {when}",
+    "emptyDoctors": "Aucun médecin enregistré.",
+    "emptyCases": "Aucun dossier pour ce médecin.",
+    "emptyActivity": "Aucune entrée dans le journal.",
+    "tokenSplit": "{in} entrée · {out} sortie",
+    "kpi": {
+      "doctors": "Médecins",
+      "cases": "Dossiers",
+      "messages": "Messages",
+      "reports": "Rapports",
+      "tokens": "Jetons totaux",
+      "llmCalls": "Appels LLM",
+      "tokensIn": "Jetons entrée",
+      "tokensOut": "Jetons sortie"
+    },
+    "col": {
+      "doctor": "Médecin",
+      "specialty": "Spécialité",
+      "cases": "Dossiers",
+      "messages": "Messages",
+      "reports": "Rapports",
+      "llmCalls": "Appels LLM",
+      "tokensIn": "Jetons entrée",
+      "tokensOut": "Jetons sortie",
+      "tokensTotal": "Total",
+      "lastActive": "Dernière activité",
+      "model": "Modèle"
+    }
   },
   "Landing": {
     "createAccount": "Créer un compte",

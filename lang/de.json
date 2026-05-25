@@ -30,7 +30,46 @@
     "appName": "MedAgent AI",
     "tagline": "Klinische Entscheidungsunterstützung",
     "signIn": "Anmelden",
-    "signOut": "Abmelden"
+    "signOut": "Abmelden",
+    "admin": "Admin"
+  },
+  "Admin": {
+    "title": "Admin · Nutzungsmonitor",
+    "sub": "Aktivität pro Arzt und LLM-Token-Verbrauch.",
+    "doctorsTitle": "Ärzte",
+    "doctorTitle": "{name}",
+    "casesTitle": "Fälle",
+    "activityTitle": "Letzte Aktivität",
+    "byModelTitle": "Nutzung pro Modell",
+    "backToList": "Zurück zu Ärzten",
+    "joined": "Registriert am {when}",
+    "emptyDoctors": "Noch keine Ärzte registriert.",
+    "emptyCases": "Noch keine Fälle für diesen Arzt.",
+    "emptyActivity": "Noch keine Audit-Log-Einträge.",
+    "tokenSplit": "{in} ein · {out} aus",
+    "kpi": {
+      "doctors": "Ärzte",
+      "cases": "Fälle",
+      "messages": "Nachrichten",
+      "reports": "Berichte",
+      "tokens": "Tokens gesamt",
+      "llmCalls": "LLM-Aufrufe",
+      "tokensIn": "Eingabe-Tokens",
+      "tokensOut": "Ausgabe-Tokens"
+    },
+    "col": {
+      "doctor": "Arzt",
+      "specialty": "Fachgebiet",
+      "cases": "Fälle",
+      "messages": "Nachrichten",
+      "reports": "Berichte",
+      "llmCalls": "LLM-Aufrufe",
+      "tokensIn": "Tokens ein",
+      "tokensOut": "Tokens aus",
+      "tokensTotal": "Gesamt",
+      "lastActive": "Zuletzt aktiv",
+      "model": "Modell"
+    }
   },
   "Landing": {
     "createAccount": "Konto erstellen",
