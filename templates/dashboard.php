@@ -84,7 +84,7 @@ ob_start();
     <?php else: ?>
         <div class="grid md:grid-cols-2 gap-3">
             <?php foreach ($cases as $c):
-                $spec = get_specialty($c['specialty_id']);
+                $spec = localized_specialty($c['specialty_id']);
                 $st = $statusStyles[$c['status']] ?? $statusStyles['OPEN'];
             ?>
                 <a href="/cases/<?= (int) $c['id'] ?>" class="card card-hover block relative overflow-hidden">

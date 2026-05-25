@@ -22,7 +22,7 @@ $tints = [
 ];
 
 // Build searchable haystack server-side so the JS filter doesn't need to parse PHP.
-$all = specialties();
+$all = localized_specialties();
 $totalCount = count($all);
 
 ob_start();

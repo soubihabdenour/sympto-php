@@ -96,7 +96,7 @@ function generate_report(array $opts): array {
         : [];
 
     if (!llm_enabled()) {
-        return demo_report($spec, $opts['ctx'], $research, $locale);
+        return demo_report(localized_specialty($spec, $locale) ?? $spec, $opts['ctx'], $research, $locale);
     }
 
     $system = build_specialist_system_prompt($spec, $locale);
@@ -120,7 +120,7 @@ function generate_report(array $opts): array {
         ]);
         $usageTotal = accumulate_usage($usageTotal);
     } catch (LLMUnavailableError $e) {
-        return demo_report($spec, $opts['ctx'], $research, $locale);
+        return demo_report(localized_specialty($spec, $locale) ?? $spec, $opts['ctx'], $research, $locale);
     }
 
     $parsed = safe_parse_report($raw);
@@ -222,7 +222,7 @@ function chat_with_agent(array $opts): string {
     $locale = $opts['locale'] ?? 'en';
 
     if (!llm_enabled()) {
-        return demo_chat_reply($spec, $opts['doctor_message'], $locale);
+        return demo_chat_reply(localized_specialty($spec, $locale) ?? $spec, $opts['doctor_message'], $locale);
     }
 
     $system = build_specialist_system_prompt($spec, $locale);
@@ -249,7 +249,7 @@ function chat_with_agent(array $opts): string {
             'temperature' => 0.3,
         ]);
     } catch (LLMUnavailableError $e) {
-        return demo_chat_reply($spec, $opts['doctor_message'], $locale);
+        return demo_chat_reply(localized_specialty($spec, $locale) ?? $spec, $opts['doctor_message'], $locale);
     }
 }
 

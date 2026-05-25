@@ -223,3 +223,43 @@ function get_specialty(string $id): ?array {
     }
     return null;
 }
+
+// ---------- i18n ----------
+//
+// The English entries above are the canonical form used by the LLM system
+// prompt. UI templates should display agents through localized_specialty() /
+// localized_specialties() so doctors see their selected language.
+//
+// Translatable fields:    name, specialty, description, required_context,
+//                         common_red_flags.
+// Kept canonical English: id, icon, system_prompt_addon, recommended_investigations,
+//                         validated_tools (clinical instrument names like
+//                         "HEART score" / "NIHSS" are not translated), analysis_style.
+
+function _load_specialty_translations(string $locale): array {
+    static $cache = [];
+    if (isset($cache[$locale])) return $cache[$locale];
+    $path = APP_ROOT . "/src/i18n/specialties_{$locale}.php";
+    $cache[$locale] = is_file($path) ? require $path : [];
+    return $cache[$locale];
+}
+
+/**
+ * Returns the specialty record with locale-specific overrides merged in.
+ * Accepts either a specialty id (string) or an already-loaded array.
+ * Falls back to the English canonical record when no override is available.
+ */
+function localized_specialty($idOrSpec, ?string $locale = null): ?array {
+    $spec = is_array($idOrSpec) ? $idOrSpec : get_specialty((string) $idOrSpec);
+    if (!$spec) return null;
+    $locale ??= function_exists('current_locale') ? current_locale() : 'en';
+    if ($locale === 'en') return $spec;
+    $overrides = _load_specialty_translations($locale)[$spec['id']] ?? [];
+    if (!$overrides) return $spec;
+    return array_merge($spec, $overrides);
+}
+
+function localized_specialties(?string $locale = null): array {
+    $locale ??= function_exists('current_locale') ? current_locale() : 'en';
+    return array_map(fn($s) => localized_specialty($s, $locale), SPECIALTIES);
+}

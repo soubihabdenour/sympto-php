@@ -39,7 +39,7 @@ ob_start();
             // Pre-select priority: POST (form re-render after error) > GET (deep-link from /agents).
             $selectedId = $_POST['specialty_id'] ?? $_GET['specialty_id'] ?? null;
             if ($selectedId !== null && !get_specialty($selectedId)) $selectedId = null;
-            foreach (specialties() as $spec):
+            foreach (localized_specialties() as $spec):
                 $selected = $spec['id'] === $selectedId;
                 require TEMPLATES_DIR . '/components/agent_card.php';
             endforeach; ?>

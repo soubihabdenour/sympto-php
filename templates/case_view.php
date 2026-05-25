@@ -1,7 +1,7 @@
 <?php
 require_once TEMPLATES_DIR . '/components/icons.php';
 $title = $case['title'] . ' — ' . t('Case.tabs.patient');
-$spec = get_specialty($case['specialty_id']);
+$spec = localized_specialty($case['specialty_id']);
 $cid = (int) $case['id'];
 
 // Completeness
@@ -103,7 +103,7 @@ ob_start();
             </div>
             <form method="post" action="/cases/<?= $cid ?>/specialty" class="grid sm:grid-cols-2 gap-3">
                 <?= csrf_field() ?>
-                <?php foreach (specialties() as $s):
+                <?php foreach (localized_specialties() as $s):
                     $isCur = $s['id'] === $case['specialty_id'];
                 ?>
                     <button type="submit" name="specialty_id" value="<?= h($s['id']) ?>"
