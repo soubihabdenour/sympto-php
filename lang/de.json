@@ -31,7 +31,16 @@
     "tagline": "Klinische Entscheidungsunterstützung",
     "signIn": "Anmelden",
     "signOut": "Abmelden",
-    "admin": "Admin"
+    "admin": "Admin",
+    "profileTitle": "Profil & Nutzung öffnen",
+    "usageTokens": "Tokens (30 T)",
+    "usageCost": "Kosten (30 T)",
+    "limitMonth": "Limit verbleibend",
+    "limitWindow": {
+      "minute": "Limit · Minute",
+      "day": "Limit · Tag",
+      "week": "Limit · Woche"
+    }
   },
   "Admin": {
     "title": "Admin · Nutzungsmonitor",
@@ -43,6 +52,23 @@
     "byModelTitle": "Nutzung pro Modell",
     "byActionTitle": "Nutzung pro Aktion",
     "backToList": "Zurück zu Ärzten",
+    "limit": {
+      "windowLabel": {
+        "minute": "Pro Minute",
+        "day": "Pro Tag",
+        "week": "Pro Woche"
+      },
+      "unset": "unbegrenzt"
+    },
+    "tier": {
+      "title": "Tarif",
+      "hint": "Der Tarif legt Limits pro Minute, Tag und Woche fest.",
+      "save": "Tarif anwenden",
+      "unsaved": "ungespeicherte Änderung",
+      "flash": {
+        "set": "Tarif auf {tier} gesetzt."
+      }
+    },
     "joined": "Registriert am {when}",
     "emptyDoctors": "Noch keine Ärzte registriert.",
     "emptyCases": "Noch keine Fälle für diesen Arzt.",
@@ -204,6 +230,7 @@
   "Case": {
     "back": "← Zurück zu den Fällen",
     "statusLabel": "Status:",
+    "statusChange": "Fallstatus ändern",
     "agentLabel": "Agent",
     "agentChange": "ändern",
     "generateReport": "Vollständigen Bericht erstellen",
@@ -296,7 +323,15 @@
     "webSearch": "Websuche",
     "enabled": "Aktiviert",
     "disabledNote": "Deaktiviert — das Recherchemodul liefert markierte Platzhalter",
-    "envHint": "In .env konfigurieren: LLM_PROVIDER auf openai, anthropic oder gemini setzen, anschließend den passenden Schlüssel angeben (OPENAI_API_KEY, ANTHROPIC_API_KEY oder GEMINI_API_KEY) sowie optional das Modell überschreiben (OPENAI_MODEL, ANTHROPIC_MODEL, GEMINI_MODEL). ENABLE_WEB_SEARCH umschalten, um die anbietereigene Websuche zu aktivieren."
+    "envHint": "In .env konfigurieren: LLM_PROVIDER auf openai, anthropic oder gemini setzen, anschließend den passenden Schlüssel angeben (OPENAI_API_KEY, ANTHROPIC_API_KEY oder GEMINI_API_KEY) sowie optional das Modell überschreiben (OPENAI_MODEL, ANTHROPIC_MODEL, GEMINI_MODEL). ENABLE_WEB_SEARCH umschalten, um die anbietereigene Websuche zu aktivieren.",
+    "usageTitle": "Mein Token-Verbrauch",
+    "usageRange": "Letzte {days} Tage",
+    "usageEmpty": "Keine LLM-Aktivität in den letzten 30 Tagen erfasst.",
+    "limit": {
+      "none": "Keine Limits gesetzt — Ihr Konto hat uneingeschränkte LLM-Nutzung.",
+      "warn": "Limit fast erreicht",
+      "exceeded": "Limit erreicht"
+    }
   },
   "Report": {
     "demoBanner": "Demo-Modus: Es ist kein API-Schlüssel eines LLM-Anbieters konfiguriert, daher wurde keine echte klinische Analyse durchgeführt.",
@@ -344,6 +379,20 @@
     "likelihoodMedium": "mittel",
     "likelihoodLow": "niedrig",
     "empty": "—"
+  },
+  "Limit": {
+    "exceeded": "{window} LLM-Token-Limit erreicht ({used} / {limit}). Warten Sie oder bitten Sie Ihren Administrator, das Limit zu erhöhen.",
+    "window": {
+      "minute": "Minuten-",
+      "day": "Tages-",
+      "week": "Wochen-"
+    }
+  },
+  "Tier": {
+    "free": "Free",
+    "plus": "Plus",
+    "pro": "Pro",
+    "max": "Max"
   },
   "Print": {
     "hint": "Verwenden Sie den Druckdialog des Browsers, um als PDF zu speichern.",

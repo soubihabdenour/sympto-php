@@ -61,6 +61,112 @@ ob_start();
         </div>
     </div>
 
+    <?php
+        $status = $limits_status ?? doctor_token_limits_status((int) $target['id']);
+        $currentTier = $current_tier ?? tier_default();
+        $tierBadgeCls = [
+            'free' => 'bg-ink-100 text-ink-700',
+            'plus' => 'bg-brand-50 text-brand-800',
+            'pro'  => 'bg-vital-50 text-vital-700',
+            'max'  => 'bg-gradient-to-r from-brand-700 to-brand-900 text-white',
+        ];
+        $barCls = function (?int $pct): string {
+            if ($pct === null) return 'bg-ink-300';
+            return $pct >= 100 ? 'bg-red-500' : ($pct >= 80 ? 'bg-amber-500' : 'bg-brand-600');
+        };
+    ?>
+    <form method="post" action="/admin/doctors/<?= (int) $target['id'] ?>/tier" class="card p-4 mb-4"
+          x-data="{ selected: '<?= h($currentTier) ?>', saved: '<?= h($currentTier) ?>' }">
+        <?= csrf_field() ?>
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+            <h2 class="section-title">
+                <?= icon('shield', 'w-4 h-4 text-brand-700') ?>
+                <?= h(t('Admin.tier.title')) ?>
+                <span class="pill ml-1"
+                      :class="{
+                          'bg-ink-100 text-ink-700': selected === 'free',
+                          'bg-brand-50 text-brand-800': selected === 'plus',
+                          'bg-vital-50 text-vital-700': selected === 'pro',
+                          'bg-gradient-to-r from-brand-700 to-brand-900 text-white': selected === 'max'
+                      }"
+                      x-text="({ free: '<?= h(t('Tier.free')) ?>', plus: '<?= h(t('Tier.plus')) ?>', pro: '<?= h(t('Tier.pro')) ?>', max: '<?= h(t('Tier.max')) ?>' })[selected]"></span>
+                <span x-show="selected !== saved" class="text-[10px] font-medium text-amber-700 uppercase tracking-wide"><?= h(t('Admin.tier.unsaved')) ?></span>
+            </h2>
+            <?php if (!empty($limit_flash)): ?>
+                <span class="text-[11px] text-vital-700"><?= h(t('Admin.tier.flash.set', ['tier' => t('Tier.' . ($limit_flash['tier'] ?? $currentTier))])) ?></span>
+            <?php endif; ?>
+        </div>
+
+        <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-2 mb-3">
+            <?php foreach (TIERS as $tier):
+                $tl = tier_limits($tier);
+            ?>
+                <label class="cursor-pointer rounded-lg border p-3 transition-all block"
+                       :class="selected === '<?= h($tier) ?>'
+                           ? 'border-brand-500 ring-2 ring-brand-500/30 bg-brand-50/40'
+                           : 'border-ink-200 hover:border-brand-300'">
+                    <input type="radio" name="tier" value="<?= h($tier) ?>"
+                           x-model="selected"
+                           class="sr-only">
+                    <div class="flex items-center justify-between mb-1.5">
+                        <span class="text-sm font-bold text-ink-900 uppercase tracking-wide"><?= h(t('Tier.' . $tier)) ?></span>
+                        <span class="w-4 h-4 rounded-full grid place-items-center transition-all"
+                              :class="selected === '<?= h($tier) ?>' ? 'bg-brand-600 text-white' : 'border border-ink-300'">
+                            <span x-show="selected === '<?= h($tier) ?>'"><?= icon('check', 'w-3 h-3') ?></span>
+                        </span>
+                    </div>
+                    <ul class="space-y-0.5 text-[11px] text-ink-700">
+                        <?php foreach (['minute', 'day', 'week'] as $win):
+                            $v = $tl[$win];
+                        ?>
+                            <li class="flex items-center justify-between gap-2">
+                                <span class="text-ink-500"><?= h(t('Admin.limit.windowLabel.' . $win)) ?></span>
+                                <span class="font-mono tabular-nums">
+                                    <?= $v === null ? '∞' : number_format($v) ?>
+                                </span>
+                            </li>
+                        <?php endforeach; ?>
+                    </ul>
+                </label>
+            <?php endforeach; ?>
+        </div>
+
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+            <p class="text-[11px] text-ink-500"><?= h(t('Admin.tier.hint')) ?></p>
+            <button type="submit" class="btn-primary text-sm" :disabled="selected === saved" :class="{ 'opacity-50 cursor-not-allowed': selected === saved }">
+                <?= icon('check', 'w-4 h-4') ?>
+                <?= h(t('Admin.tier.save')) ?>
+            </button>
+        </div>
+
+        <!-- Live usage vs effective tier caps -->
+        <div class="grid sm:grid-cols-3 gap-3 pt-3 border-t border-ink-100">
+            <?php foreach (['minute', 'day', 'week'] as $win):
+                $s = $status[$win];
+                $limit = $s['limit'];
+                $used = $s['used'];
+                $pct = $s['used_pct'];
+            ?>
+                <div>
+                    <div class="text-[10px] uppercase tracking-wide text-ink-500 font-semibold flex items-center gap-1.5 mb-1">
+                        <?= icon('clock', 'w-3 h-3 text-ink-400') ?>
+                        <?= h(t('Admin.limit.windowLabel.' . $win)) ?>
+                    </div>
+                    <?php if ($limit === null): ?>
+                        <div class="text-xs text-ink-600 tabular-nums">∞ <?= h(t('Admin.limit.unset')) ?></div>
+                    <?php else: ?>
+                        <div class="text-xs text-ink-700 tabular-nums">
+                            <?= number_format($used) ?> / <?= number_format($limit) ?> · <?= $pct ?>%
+                        </div>
+                        <div class="mt-1 w-full h-1 rounded-full bg-ink-100 overflow-hidden">
+                            <div class="<?= $barCls($pct) ?> h-full transition-all" style="width: <?= $pct ?>%"></div>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    </form>
+
     <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
         <div class="kpi">
             <div class="kpi-icon bg-ink-100 text-ink-700"><?= icon('folder', 'w-5 h-5') ?></div>

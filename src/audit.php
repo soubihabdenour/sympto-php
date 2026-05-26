@@ -187,6 +187,116 @@ function aggregate_token_usage_by_doctor(): array {
     return $out;
 }
 
+/** Rolling-window token-limit configuration. */
+const TOKEN_LIMIT_WINDOWS = [
+    'minute' => ['column' => 'tokens_per_minute_limit', 'sqlite_offset' => '-1 minute'],
+    'day'    => ['column' => 'tokens_per_day_limit',    'sqlite_offset' => '-1 day'],
+    'week'   => ['column' => 'tokens_per_week_limit',   'sqlite_offset' => '-7 days'],
+];
+
+/**
+ * Plan tiers and their token allowances per rolling window.
+ * NULL in a slot = no cap for that window on that tier.
+ * Adjust the numbers freely; 'max' is intentionally unlimited.
+ */
+const TIER_LIMITS = [
+    'free' => ['minute' =>   5000, 'day' =>   50000, 'week' =>   200000],
+    'plus' => ['minute' =>  25000, 'day' =>  300000, 'week' =>  1500000],
+    'pro'  => ['minute' => 100000, 'day' => 1500000, 'week' => 10000000],
+    'max'  => ['minute' =>   null, 'day' =>    null, 'week' =>     null],
+];
+const TIERS = ['free', 'plus', 'pro', 'max'];
+
+function tier_default(): string { return 'free'; }
+function tier_is_valid(string $t): bool { return in_array($t, TIERS, true); }
+function tier_limits(string $tier): array {
+    return TIER_LIMITS[$tier] ?? TIER_LIMITS['free'];
+}
+
+/**
+ * Effective per-window cap for a doctor. Reads tier first; falls back to
+ * the legacy per-doctor override column when the tier slot is null (allowing
+ * 'max' to remain unlimited even if a legacy value lingers — pass-through).
+ */
+function doctor_effective_limit(array $doctorRow, string $window): ?int {
+    $tier = $doctorRow['tier'] ?? tier_default();
+    $tl = tier_limits(is_string($tier) ? $tier : tier_default());
+    return $tl[$window] ?? null;
+}
+
+/**
+ * Sum (input + output) tokens consumed by a doctor since an absolute SQLite
+ * datetime modifier (e.g. '-1 minute'). UTC.
+ */
+function doctor_token_usage_window(int $doctorId, string $sqliteOffset): int {
+    $rows = db_all(
+        "SELECT detail FROM audit_logs
+         WHERE doctor_id = ? AND detail IS NOT NULL
+           AND action IN ('message.reply', 'report.generate')
+           AND created_at >= datetime('now', ?)",
+        [$doctorId, $sqliteOffset]
+    );
+    $total = 0;
+    foreach ($rows as $r) {
+        $d = json_decode((string) $r['detail'], true);
+        if (!is_array($d) || empty($d['usage']) || !is_array($d['usage'])) continue;
+        $u = $d['usage'];
+        $total += (int) ($u['input_tokens'] ?? 0) + (int) ($u['output_tokens'] ?? 0);
+    }
+    return $total;
+}
+
+/**
+ * Returns one row of limits + live usage for a doctor, keyed by window name.
+ * Each entry: ['limit' => ?int, 'used' => int, 'used_pct' => ?int, 'remaining_pct' => ?int].
+ * 'limit' is null when no cap is set; 'used_pct' and 'remaining_pct' are null in that case.
+ */
+function doctor_token_limits_status(int $doctorId): array {
+    $row = db_fetch('SELECT tier FROM doctors WHERE id = ?', [$doctorId]) ?? [];
+    $out = [];
+    foreach (TOKEN_LIMIT_WINDOWS as $name => $cfg) {
+        $limit = doctor_effective_limit($row, $name);
+        $used  = doctor_token_usage_window($doctorId, $cfg['sqlite_offset']);
+        $usedPct = ($limit !== null && $limit > 0) ? min(100, (int) round(($used / $limit) * 100)) : null;
+        $remPct  = $usedPct === null ? null : max(0, 100 - $usedPct);
+        $out[$name] = [
+            'limit' => $limit,
+            'used'  => $used,
+            'used_pct' => $usedPct,
+            'remaining_pct' => $remPct,
+        ];
+    }
+    return $out;
+}
+
+/**
+ * Returns true if any of the doctor's configured rate-limit windows is at/over capacity.
+ * Throws TokenLimitExceeded carrying the offending window name.
+ * Soft check — does not reserve quota for the upcoming call.
+ */
+function assert_doctor_within_token_limit(int $doctorId): void {
+    $status = doctor_token_limits_status($doctorId);
+    foreach ($status as $window => $s) {
+        $limit = $s['limit'];
+        if ($limit === null || $limit <= 0) continue;
+        if ($s['used'] >= $limit) {
+            throw new TokenLimitExceeded($window, $s['used'], $limit);
+        }
+    }
+}
+
+class TokenLimitExceeded extends RuntimeException {
+    public string $window;
+    public int $used;
+    public int $limit;
+    public function __construct(string $window, int $used, int $limit) {
+        $this->window = $window;
+        $this->used = $used;
+        $this->limit = $limit;
+        parent::__construct("Token limit reached for {$window} window ({$used} of {$limit})");
+    }
+}
+
 function audit(string $action, ?int $doctorId = null, ?int $caseId = null, $detail = null): void {
     try {
         db_exec(

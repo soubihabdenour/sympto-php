@@ -40,24 +40,40 @@ $tabsMeta = [
 ];
 ob_start();
 ?>
-<div class="max-w-7xl mx-auto px-4 sm:px-6 py-5 sm:py-6 space-y-5" x-data="caseView(<?= (int) $cid ?>)">
+<div class="max-w-7xl mx-auto px-3 sm:px-5 py-3 sm:py-4 space-y-3" x-data="caseView(<?= (int) $cid ?>)">
 
-    <div class="flex flex-wrap items-start justify-between gap-3 no-print">
+    <div class="flex flex-wrap items-start justify-between gap-2 no-print">
         <div class="min-w-0">
-            <a href="<?= $is_owner ? '/dashboard' : '/admin/doctors/' . (int) $case['doctor_id'] ?>" class="inline-flex items-center gap-1 text-xs text-ink-500 hover:text-ink-800 transition-colors">
-                <?= icon('arrow-left', 'w-3.5 h-3.5') ?>
+            <a href="<?= $is_owner ? '/dashboard' : '/admin/doctors/' . (int) $case['doctor_id'] ?>" class="inline-flex items-center gap-1 text-[11px] text-ink-500 hover:text-ink-800 transition-colors">
+                <?= icon('arrow-left', 'w-3 h-3') ?>
                 <?= h(t('Case.back')) ?>
             </a>
-            <h1 class="text-xl sm:text-2xl font-bold tracking-tight mt-1 text-ink-900 break-words"><?= h($case['title']) ?></h1>
-            <div class="text-sm text-ink-500 mt-1 flex items-center gap-2 flex-wrap">
+            <h1 class="text-lg sm:text-xl font-bold tracking-tight mt-0.5 text-ink-900 break-words"><?= h($case['title']) ?></h1>
+            <div class="text-xs text-ink-500 mt-0.5 flex items-center gap-1.5 flex-wrap">
                 <span class="inline-flex items-center gap-1">
                     <?= icon($spec['icon'] ?? 'stethoscope', 'w-4 h-4 text-ink-400') ?>
                     <?= h($spec['specialty'] ?? '') ?>
                 </span>
                 <span class="text-ink-300">·</span>
-                <span class="pill <?= $statusPill[$case['status']] ?? 'bg-ink-100 text-ink-700' ?>">
-                    <?= h($statusLabels[$case['status']] ?? strtolower(str_replace('_', ' ', $case['status']))) ?>
-                </span>
+                <?php if ($is_owner): ?>
+                    <form method="post" action="/cases/<?= $cid ?>/status" class="inline-flex items-center"
+                          x-data="{ original: '<?= h($case['status']) ?>', current: '<?= h($case['status']) ?>' }">
+                        <?= csrf_field() ?>
+                        <select name="status"
+                                x-model="current"
+                                @change="$el.form.requestSubmit()"
+                                class="pill <?= $statusPill[$case['status']] ?? 'bg-ink-100 text-ink-700' ?> border-0 focus:ring-2 focus:ring-brand-500/30 cursor-pointer pr-6"
+                                title="<?= h(t('Case.statusChange')) ?>">
+                            <?php foreach ($statusLabels as $key => $label): ?>
+                                <option value="<?= h($key) ?>" <?= $case['status'] === $key ? 'selected' : '' ?>><?= h($label) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </form>
+                <?php else: ?>
+                    <span class="pill <?= $statusPill[$case['status']] ?? 'bg-ink-100 text-ink-700' ?>">
+                        <?= h($statusLabels[$case['status']] ?? strtolower(str_replace('_', ' ', $case['status']))) ?>
+                    </span>
+                <?php endif; ?>
             </div>
         </div>
         <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
@@ -93,13 +109,6 @@ ob_start();
             <span x-text="error"></span>
         </div>
     </template>
-
-    <?php if ($completeness < 50): ?>
-        <div class="card border-amber-200 bg-amber-50 p-3 text-sm text-amber-900 flex items-start gap-2.5 no-print">
-            <?= icon('alert', 'w-4 h-4 mt-0.5 shrink-0 text-amber-700') ?>
-            <span><?= h(t('Case.sparseData', ['percent' => $completeness])) ?></span>
-        </div>
-    <?php endif; ?>
 
     <!-- Change agent modal -->
     <div x-show="changingAgent" x-cloak class="fixed inset-0 z-50 bg-ink-900/40 backdrop-blur-sm grid place-items-center p-4 no-print">
@@ -154,14 +163,14 @@ ob_start();
     </div>
 
     <!-- Patient panel -->
-    <div x-show="tab === 'patient'" class="grid lg:grid-cols-3 gap-4">
-        <form method="post" action="/cases/<?= $cid ?>/patient" class="lg:col-span-2 card p-5">
+    <div x-show="tab === 'patient'" class="grid lg:grid-cols-3 gap-3">
+        <form method="post" action="/cases/<?= $cid ?>/patient" class="lg:col-span-2 card p-4">
             <?= csrf_field() ?>
-            <div class="flex items-center gap-2 mb-4 pb-3 border-b border-ink-100">
-                <?= icon('user', 'w-5 h-5 text-brand-700') ?>
+            <div class="flex items-center gap-2 mb-3 pb-2 border-b border-ink-100">
+                <?= icon('user', 'w-4 h-4 text-brand-700') ?>
                 <h2 class="section-title">Patient details</h2>
             </div>
-            <fieldset <?= $is_owner ? '' : 'disabled' ?> class="grid sm:grid-cols-2 gap-4">
+            <fieldset <?= $is_owner ? '' : 'disabled' ?> class="grid sm:grid-cols-2 gap-3">
                 <div>
                     <label class="label"><?= h(t('Case.patient.ageYears')) ?></label>
                     <input type="number" min="0" name="age_years" value="<?= h((string) ($patient['age_years'] ?? '')) ?>" class="input">
@@ -196,7 +205,7 @@ ob_start();
                 <div class="<?= $multi ? 'sm:col-span-2' : '' ?>">
                     <label class="label"><?= h(t("Case.patient.$labelKey")) ?></label>
                     <?php if ($multi): ?>
-                        <textarea name="<?= $col ?>" class="input min-h-[80px]" placeholder="<?= h($ph) ?>"><?= h((string) $val) ?></textarea>
+                        <textarea name="<?= $col ?>" class="input min-h-[64px]" placeholder="<?= h($ph) ?>"><?= h((string) $val) ?></textarea>
                     <?php else: ?>
                         <input name="<?= $col ?>" value="<?= h((string) $val) ?>" placeholder="<?= h($ph) ?>" class="input">
                     <?php endif; ?>
@@ -204,7 +213,7 @@ ob_start();
                 <?php endforeach; ?>
             </fieldset>
             <?php if ($is_owner): ?>
-                <div class="mt-5 flex justify-end">
+                <div class="mt-3 flex justify-end">
                     <button type="submit" class="btn-primary">
                         <?= icon('check', 'w-4 h-4') ?>
                         <?= h(t('Case.patient.save')) ?>
@@ -212,32 +221,32 @@ ob_start();
                 </div>
             <?php endif; ?>
         </form>
-        <div class="space-y-3">
-            <div class="card p-5">
+        <div class="space-y-2">
+            <div class="card p-3">
                 <div class="text-[11px] text-ink-500 uppercase tracking-wider font-semibold flex items-center gap-1.5">
-                    <?= icon('pulse', 'w-3.5 h-3.5') ?>
+                    <?= icon('pulse', 'w-3 h-3') ?>
                     <?= h(t('Case.patient.completeness')) ?>
                 </div>
-                <div class="mt-3 flex items-center gap-4">
-                    <div class="relative w-20 h-20 shrink-0">
-                        <svg viewBox="0 0 36 36" class="w-20 h-20 -rotate-90">
+                <div class="mt-2 flex items-center gap-3">
+                    <div class="relative w-14 h-14 shrink-0">
+                        <svg viewBox="0 0 36 36" class="w-14 h-14 -rotate-90">
                             <circle cx="18" cy="18" r="15.915" fill="none" stroke="currentColor" stroke-width="3" class="text-ink-100"/>
                             <circle cx="18" cy="18" r="15.915" fill="none" stroke="currentColor" stroke-width="3"
                                     stroke-linecap="round"
                                     stroke-dasharray="<?= $completeness ?>, 100"
                                     class="<?= $ringClass ?>"/>
                         </svg>
-                        <div class="absolute inset-0 grid place-items-center text-base font-bold text-ink-900"><?= $completeness ?>%</div>
+                        <div class="absolute inset-0 grid place-items-center text-sm font-bold text-ink-900"><?= $completeness ?>%</div>
                     </div>
-                    <div class="text-xs text-ink-500 leading-relaxed"><?= h(t('Case.patient.commonFields')) ?></div>
+                    <div class="text-[11px] text-ink-500 leading-snug"><?= h(t('Case.patient.commonFields')) ?></div>
                 </div>
             </div>
-            <div class="card p-5">
-                <div class="text-[11px] text-ink-500 uppercase tracking-wider font-semibold mb-3 flex items-center gap-1.5">
-                    <?= icon('clipboard', 'w-3.5 h-3.5') ?>
+            <div class="card p-3">
+                <div class="text-[11px] text-ink-500 uppercase tracking-wider font-semibold mb-2 flex items-center gap-1.5">
+                    <?= icon('clipboard', 'w-3 h-3') ?>
                     <?= h(t('Case.patient.checklist')) ?>
                 </div>
-                <ul class="space-y-2 text-sm">
+                <ul class="space-y-1 text-xs">
                     <?php foreach ($spec['required_context'] as $r): ?>
                         <li class="flex items-start gap-2 text-ink-700">
                             <span class="text-brand-600 mt-0.5 shrink-0"><?= icon('check', 'w-3.5 h-3.5') ?></span>
@@ -252,10 +261,10 @@ ob_start();
                     <?= icon('flag', 'w-3.5 h-3.5') ?>
                     Red flags
                 </div>
-                <ul class="space-y-2 text-sm">
+                <ul class="space-y-1 text-xs">
                     <?php foreach ($spec['common_red_flags'] as $r): ?>
-                        <li class="flex items-start gap-2 text-red-900">
-                            <span class="text-red-600 mt-1.5 shrink-0">
+                        <li class="flex items-start gap-1.5 text-red-900">
+                            <span class="text-red-600 mt-1 shrink-0">
                                 <span class="block w-1 h-1 rounded-full bg-red-600"></span>
                             </span>
                             <span><?= h($r) ?></span>
@@ -268,47 +277,47 @@ ob_start();
     </div>
 
     <!-- Documents panel -->
-    <div x-show="tab === 'documents'" class="grid <?= $is_owner ? 'lg:grid-cols-3' : 'lg:grid-cols-1' ?> gap-4">
+    <div x-show="tab === 'documents'" class="grid <?= $is_owner ? 'lg:grid-cols-3' : 'lg:grid-cols-1' ?> gap-3">
         <?php if ($is_owner): ?>
             <form method="post" action="/cases/<?= $cid ?>/documents" enctype="multipart/form-data" class="lg:col-span-1">
                 <?= csrf_field() ?>
-                <div class="card p-5 text-center">
-                    <div class="w-12 h-12 mx-auto rounded-xl bg-brand-50 text-brand-700 grid place-items-center">
-                        <?= icon('upload', 'w-6 h-6') ?>
+                <div class="card p-3 text-center">
+                    <div class="w-10 h-10 mx-auto rounded-xl bg-brand-50 text-brand-700 grid place-items-center">
+                        <?= icon('upload', 'w-5 h-5') ?>
                     </div>
-                    <div class="text-sm font-semibold mt-3 text-ink-900"><?= h(t('Case.documents.upload')) ?></div>
-                    <div class="text-xs text-ink-500 mt-1"><?= h(t('Case.documents.uploadHint')) ?></div>
-                    <input type="file" name="file[]" multiple class="mt-4 mx-auto text-xs file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:bg-ink-100 file:text-ink-700 file:font-medium hover:file:bg-ink-200 cursor-pointer" accept=".pdf,.docx,.txt,image/*">
-                    <button type="submit" class="btn-primary mt-4 w-full">
+                    <div class="text-sm font-semibold mt-2 text-ink-900"><?= h(t('Case.documents.upload')) ?></div>
+                    <div class="text-[11px] text-ink-500 mt-0.5"><?= h(t('Case.documents.uploadHint')) ?></div>
+                    <input type="file" name="file[]" multiple class="mt-2 mx-auto text-xs file:mr-2 file:py-1 file:px-2.5 file:rounded-md file:border-0 file:bg-ink-100 file:text-ink-700 file:font-medium hover:file:bg-ink-200 cursor-pointer" accept=".pdf,.docx,.txt,image/*">
+                    <button type="submit" class="btn-primary mt-2 w-full">
                         <?= icon('upload', 'w-4 h-4') ?>
                         <?= h(t('Case.documents.upload')) ?>
                     </button>
                 </div>
-                <div class="card p-3 mt-3 text-xs text-ink-600 flex items-start gap-2">
-                    <?= icon('info', 'w-4 h-4 mt-0.5 shrink-0 text-ink-400') ?>
+                <div class="card p-2 mt-2 text-[11px] text-ink-600 flex items-start gap-1.5">
+                    <?= icon('info', 'w-3.5 h-3.5 mt-0.5 shrink-0 text-ink-400') ?>
                     <span><?= h(t('Case.documents.tip')) ?></span>
                 </div>
             </form>
         <?php endif; ?>
-        <div class="<?= $is_owner ? 'lg:col-span-2' : '' ?> space-y-3">
+        <div class="<?= $is_owner ? 'lg:col-span-2' : '' ?> space-y-2">
             <?php if (!$documents): ?>
-                <div class="card p-10 text-sm text-ink-500 text-center">
-                    <div class="w-12 h-12 mx-auto rounded-xl bg-ink-100 text-ink-400 grid place-items-center">
-                        <?= icon('folder', 'w-6 h-6') ?>
+                <div class="card p-6 text-sm text-ink-500 text-center">
+                    <div class="w-10 h-10 mx-auto rounded-xl bg-ink-100 text-ink-400 grid place-items-center">
+                        <?= icon('folder', 'w-5 h-5') ?>
                     </div>
-                    <div class="mt-3"><?= h(t('Case.documents.empty')) ?></div>
+                    <div class="mt-2"><?= h(t('Case.documents.empty')) ?></div>
                 </div>
             <?php else: ?>
                 <?php foreach ($documents as $d): ?>
-                    <div class="card p-4">
+                    <div class="card p-3">
                         <div class="flex items-start justify-between gap-2">
-                            <div class="min-w-0 flex items-start gap-3">
-                                <span class="w-9 h-9 rounded-md bg-ink-100 text-ink-600 grid place-items-center shrink-0">
-                                    <?= icon('file-text', 'w-5 h-5') ?>
+                            <div class="min-w-0 flex items-start gap-2">
+                                <span class="w-7 h-7 rounded-md bg-ink-100 text-ink-600 grid place-items-center shrink-0">
+                                    <?= icon('file-text', 'w-4 h-4') ?>
                                 </span>
                                 <div class="min-w-0">
                                     <div class="text-sm font-semibold truncate text-ink-900"><?= h($d['filename']) ?></div>
-                                    <div class="text-xs text-ink-500 mt-0.5">
+                                    <div class="text-[11px] text-ink-500 mt-0.5">
                                         <?= h($d['kind']) ?> · <?= number_format($d['size_bytes'] / 1024, 1) ?> KB ·
                                         <?= h((new DateTime($d['uploaded_at']))->format('Y-m-d H:i')) ?>
                                     </div>
@@ -324,7 +333,7 @@ ob_start();
                                 </form>
                             <?php endif; ?>
                         </div>
-                        <div class="mt-3 text-xs text-ink-700 leading-relaxed bg-ink-50 border border-ink-100 rounded-lg p-3 max-h-44 overflow-y-auto whitespace-pre-wrap font-mono">
+                        <div class="mt-2 text-[11px] text-ink-700 leading-snug bg-ink-50 border border-ink-100 rounded-lg p-2 max-h-32 overflow-y-auto whitespace-pre-wrap font-mono">
                             <?= h(($d['extracted_text'] ?? '') !== '' ? $d['extracted_text'] : t('Case.documents.noText')) ?>
                         </div>
                     </div>
@@ -334,14 +343,14 @@ ob_start();
     </div>
 
     <!-- Chat panel -->
-    <div x-show="tab === 'chat'" class="card flex flex-col h-[70vh] overflow-hidden">
-        <div class="px-4 py-3 border-b border-ink-200 text-sm flex items-center gap-2 bg-ink-50/50">
-            <span class="w-7 h-7 rounded-md bg-brand-50 text-brand-700 grid place-items-center">
-                <?= icon($spec['icon'] ?? 'stethoscope', 'w-4 h-4') ?>
+    <div x-show="tab === 'chat'" class="card flex flex-col sticky top-3 h-[calc(100dvh-7rem)] overflow-hidden">
+        <div class="px-3 py-2 border-b border-ink-200 text-xs flex items-center gap-2 bg-ink-50/50">
+            <span class="w-6 h-6 rounded-md bg-brand-50 text-brand-700 grid place-items-center">
+                <?= icon($spec['icon'] ?? 'stethoscope', 'w-3.5 h-3.5') ?>
             </span>
             <span class="font-medium text-ink-800"><?= h(t('Case.chat.activeAgent', ['name' => $spec['name'] ?? ''])) ?></span>
         </div>
-        <div class="flex-1 overflow-y-auto p-4 space-y-3" x-ref="msgs">
+        <div class="flex-1 overflow-y-auto p-3 pb-24 space-y-2" x-ref="msgs">
             <?php if (!$messages): ?>
                 <div class="text-sm text-ink-500 text-center py-10 flex flex-col items-center gap-2" x-show="!chatMsgs.length">
                     <span class="w-10 h-10 rounded-full bg-ink-100 text-ink-400 grid place-items-center">
@@ -354,22 +363,27 @@ ob_start();
                 $isDoc = $m['role'] === 'doctor';
                 $roleLabel = $isDoc ? t('Case.chat.you') : ($m['role'] === 'agent' ? t('Case.chat.agent') : t('Case.chat.system'));
             ?>
-                <div class="flex <?= $isDoc ? 'justify-end' : 'justify-start' ?>">
-                    <div class="max-w-[80%] rounded-2xl px-4 py-2.5 text-sm <?= $isDoc ? 'whitespace-pre-wrap ' : '' ?>shadow-sm <?= $isDoc ? 'bg-brand-700 text-white rounded-br-md' : 'bg-ink-100 text-ink-900 rounded-bl-md' ?>">
-                        <div class="text-[11px] opacity-70 mb-1 font-medium"><?= h($roleLabel) ?> · <?= h((new DateTime($m['created_at']))->format('H:i')) ?></div>
-                        <?php if ($isDoc): ?>
-                            <?= h($m['content']) ?>
-                        <?php else: ?>
-                            <div class="md-content overflow-x-auto" x-init="$el.innerHTML = renderMarkdown(<?= htmlspecialchars(json_encode($m['content'], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT), ENT_QUOTES, 'UTF-8') ?>)"></div>
-                        <?php endif; ?>
+                <?php if ($isDoc): ?>
+                    <div class="text-right">
+                        <div class="inline-block text-left max-w-[85%] rounded-xl rounded-br-md px-3 py-2 text-sm shadow-sm bg-brand-700 text-white align-bottom">
+                            <div class="text-[10px] opacity-70 mb-0.5 font-medium"><?= h($roleLabel) ?> · <?= h((new DateTime($m['created_at']))->format('H:i')) ?></div>
+                            <div class="whitespace-pre-wrap"><?= h($m['content']) ?></div>
+                        </div>
                     </div>
-                </div>
+                <?php else: ?>
+                    <div class="flex justify-start">
+                        <div class="max-w-[85%] rounded-xl rounded-bl-md px-3 py-2 text-sm shadow-sm bg-ink-100 text-ink-900">
+                            <div class="text-[10px] opacity-70 mb-0.5 font-medium"><?= h($roleLabel) ?> · <?= h((new DateTime($m['created_at']))->format('H:i')) ?></div>
+                            <div class="md-content overflow-x-auto" x-init="$el.innerHTML = renderMarkdown(<?= htmlspecialchars(json_encode($m['content'], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT), ENT_QUOTES, 'UTF-8') ?>)"></div>
+                        </div>
+                    </div>
+                <?php endif; ?>
             <?php endforeach; ?>
             <template x-for="m in chatMsgs" :key="m.id">
-                <div :class="m.role === 'doctor' ? 'flex justify-end' : 'flex justify-start'">
-                    <div :class="m.role === 'doctor' ? 'max-w-[80%] rounded-2xl rounded-br-md px-4 py-2.5 text-sm whitespace-pre-wrap shadow-sm bg-brand-700 text-white' : 'max-w-[80%] rounded-2xl rounded-bl-md px-4 py-2.5 text-sm shadow-sm bg-ink-100 text-ink-900'">
-                        <div class="text-[11px] opacity-70 mb-1 font-medium" x-text="m.label"></div>
-                        <span x-show="m.role === 'doctor'" x-text="m.content"></span>
+                <div :class="m.role === 'doctor' ? 'text-right' : 'flex justify-start'">
+                    <div :class="m.role === 'doctor' ? 'inline-block text-left max-w-[85%] rounded-xl rounded-br-md px-3 py-2 text-sm shadow-sm bg-brand-700 text-white align-bottom' : 'max-w-[85%] rounded-xl rounded-bl-md px-3 py-2 text-sm shadow-sm bg-ink-100 text-ink-900'">
+                        <div class="text-[10px] opacity-70 mb-0.5 font-medium" x-text="m.label"></div>
+                        <div x-show="m.role === 'doctor'" class="whitespace-pre-wrap" x-text="m.content"></div>
                         <div x-show="m.role !== 'doctor'" class="md-content overflow-x-auto" x-html="renderMarkdown(m.content)"></div>
                     </div>
                 </div>
@@ -383,17 +397,22 @@ ob_start();
                 <?= h(t('Case.chat.thinking', ['name' => $spec['name'] ?? ''])) ?>
             </div>
         </div>
-        <?php if ($is_owner): ?>
-            <form @submit.prevent="sendMessage()" class="border-t border-ink-200 p-3 flex gap-2 bg-white">
+    </div>
+
+    <?php if ($is_owner): ?>
+        <div x-show="tab === 'chat'" x-cloak
+             class="fixed bottom-4 left-1/2 -translate-x-1/2 z-30 w-[calc(100%-1.5rem)] sm:w-[calc(100%-3rem)] max-w-3xl no-print pointer-events-none">
+            <form @submit.prevent="sendMessage()"
+                  class="pointer-events-auto bg-white/95 backdrop-blur border border-ink-200 rounded-2xl shadow-lift p-2 flex gap-1.5">
                 <input x-model="chatDraft" :disabled="busy === 'chat'"
-                       class="input flex-1" placeholder="<?= h(t('Case.chat.placeholder')) ?>">
+                       class="input flex-1 border-0 focus:ring-0 focus:border-0" placeholder="<?= h(t('Case.chat.placeholder')) ?>">
                 <button type="submit" class="btn-primary" :disabled="busy === 'chat'">
                     <?= icon('send', 'w-4 h-4') ?>
                     <span class="hidden sm:inline"><?= h(t('Case.chat.send')) ?></span>
                 </button>
             </form>
-        <?php endif; ?>
-    </div>
+        </div>
+    <?php endif; ?>
 
     <!-- Report panel -->
     <div x-show="tab === 'report'" class="report-tab">
@@ -492,10 +511,24 @@ window.renderMarkdown = function (s) {
         div.textContent = String(s);
         return div.innerHTML;
     }
-    return DOMPurify.sanitize(marked.parse(String(s), { breaks: true, gfm: true }));
+    let html = marked.parse(String(s), { breaks: true, gfm: true });
+
+    // The LLM writes bullets inside table cells as "• item<br>• item<br>...".
+    // Convert those into real <ul> lists so they get proper markers and spacing.
+    html = html.replace(/<td([^>]*)>([\s\S]*?)<\/td>/g, function (m, attrs, inner) {
+        const parts = inner.split(/<br\s*\/?>/i).map(function (p) { return p.trim(); }).filter(Boolean);
+        if (parts.length < 2) return m;
+        const bulletRe = /^[\s]*[•\-\*•]\s+/;
+        if (!parts.every(function (p) { return bulletRe.test(p); })) return m;
+        const items = parts.map(function (p) {
+            return '<li>' + p.replace(bulletRe, '') + '</li>';
+        }).join('');
+        return '<td' + attrs + '><ul class="cell-list">' + items + '</ul></td>';
+    });
+
+    return DOMPurify.sanitize(html);
 };
 </script>
-<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 <script>
 function caseView(cid) {
     return {
@@ -507,6 +540,16 @@ function caseView(cid) {
         chatDraft: '',
         reportData: <?= $latestReport ? 'true' : 'null' ?>,
         get csrf() { return document.querySelector('meta[name=csrf-token]').content; },
+        init() {
+            this.scrollChatToBottom();
+            this.$watch('tab', (val) => { if (val === 'chat') this.scrollChatToBottom(); });
+        },
+        scrollChatToBottom() {
+            this.$nextTick(() => {
+                const el = this.$refs.msgs;
+                if (el) el.scrollTop = el.scrollHeight;
+            });
+        },
         async sendMessage() {
             const text = this.chatDraft.trim();
             if (!text || this.busy) return;
@@ -526,7 +569,7 @@ function caseView(cid) {
                 this.error = e.message;
             } finally {
                 this.busy = null;
-                this.$nextTick(() => { this.$refs.msgs.scrollTop = this.$refs.msgs.scrollHeight; });
+                this.scrollChatToBottom();
             }
         },
         async generateReport() {
@@ -551,22 +594,28 @@ function caseView(cid) {
 </script>
 <style>
 [x-cloak] { display: none !important; }
-.md-content { line-height: 1.45; }
-.md-content h1, .md-content h2, .md-content h3, .md-content h4 { font-weight: 600; margin: 0.6em 0 0.3em; }
-.md-content h3 { font-size: 0.95rem; }
-.md-content h4 { font-size: 0.9rem; }
-.md-content p { margin: 0.35em 0; }
-.md-content ul, .md-content ol { padding-left: 1.1rem; margin: 0.3em 0; }
+.md-content { line-height: 1.3; }
+.md-content h1, .md-content h2, .md-content h3, .md-content h4 { font-weight: 600; margin: 0.4em 0 0.15em; }
+.md-content h3 { font-size: 0.9rem; }
+.md-content h4 { font-size: 0.85rem; }
+.md-content p { margin: 0.2em 0; }
+.md-content ul, .md-content ol { padding-left: 0.85rem; margin: 0.15em 0; list-style-position: outside; }
 .md-content ul { list-style: disc; }
 .md-content ol { list-style: decimal; }
-.md-content li { margin: 0.15em 0; }
+.md-content li { margin: 0; padding-left: 0.1em; line-height: 1.25; }
+.md-content li::marker { color: rgba(15, 23, 42, 0.5); font-size: 0.7em; }
 .md-content strong { font-weight: 700; }
 .md-content em { font-style: italic; }
 .md-content code { background: rgba(15, 23, 42, 0.08); padding: 0.05em 0.3em; border-radius: 0.25rem; font-size: 0.85em; }
-.md-content table { width: 100%; border-collapse: collapse; margin: 0.5em 0; font-size: 0.82rem; }
-.md-content th, .md-content td { border: 1px solid rgba(15, 23, 42, 0.18); padding: 0.3em 0.5em; text-align: left; vertical-align: top; }
+.md-content table { width: 100%; border-collapse: collapse; margin: 0.3em 0; font-size: 0.8rem; line-height: 1.25; }
+.md-content th, .md-content td { border: 1px solid rgba(15, 23, 42, 0.18); padding: 0.2em 0.4em; text-align: left; vertical-align: top; }
 .md-content th { background: rgba(15, 23, 42, 0.06); font-weight: 600; }
-.md-content table br { display: block; content: ''; margin-top: 0.15em; }
+/* Bullet lists inside table cells (post-rendered from "• item<br>..." patterns) */
+.md-content .cell-list { margin: 0; padding-left: 0.8rem; list-style: disc outside; }
+.md-content .cell-list li { margin: 0; padding-left: 0.05em; line-height: 1.22; }
+.md-content .cell-list li::marker { color: rgba(15, 23, 42, 0.5); font-size: 0.65em; }
+/* Fallback: still treat <br>s as line breaks even when not converted to <ul> */
+.md-content td br { display: block; content: ""; margin: 0; }
 
 /* ---------- Print: clinical PDF layout ---------- */
 .print-header { display: none; }

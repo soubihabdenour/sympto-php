@@ -31,7 +31,16 @@
     "tagline": "Clinical decision support",
     "signIn": "Sign in",
     "signOut": "Sign out",
-    "admin": "Admin"
+    "admin": "Admin",
+    "profileTitle": "Open profile & usage",
+    "usageTokens": "Tokens (30d)",
+    "usageCost": "Cost (30d)",
+    "limitMonth": "Limit remaining",
+    "limitWindow": {
+      "minute": "Limit · minute",
+      "day": "Limit · day",
+      "week": "Limit · week"
+    }
   },
   "Admin": {
     "title": "Admin · Usage monitor",
@@ -43,6 +52,23 @@
     "byModelTitle": "Usage by model",
     "byActionTitle": "Usage by action",
     "backToList": "Back to doctors",
+    "limit": {
+      "windowLabel": {
+        "minute": "Per minute",
+        "day": "Per day",
+        "week": "Per week"
+      },
+      "unset": "unlimited"
+    },
+    "tier": {
+      "title": "Plan tier",
+      "hint": "Tier determines per-minute, per-day, and per-week token caps.",
+      "save": "Apply tier",
+      "unsaved": "unsaved change",
+      "flash": {
+        "set": "Tier set to {tier}."
+      }
+    },
     "joined": "Joined {when}",
     "emptyDoctors": "No doctors registered yet.",
     "emptyCases": "No cases yet for this doctor.",
@@ -204,6 +230,7 @@
   "Case": {
     "back": "← Back to cases",
     "statusLabel": "status:",
+    "statusChange": "Change case status",
     "agentLabel": "Agent",
     "agentChange": "change",
     "generateReport": "Generate full report",
@@ -296,7 +323,15 @@
     "webSearch": "Web search",
     "enabled": "Enabled",
     "disabledNote": "Disabled — research module returns labeled placeholders",
-    "envHint": "Configure in .env: set LLM_PROVIDER to openai, anthropic, or gemini, then provide the matching key (OPENAI_API_KEY, ANTHROPIC_API_KEY, or GEMINI_API_KEY) and optional model override (OPENAI_MODEL, ANTHROPIC_MODEL, GEMINI_MODEL). Toggle ENABLE_WEB_SEARCH to enable provider-native web search."
+    "envHint": "Configure in .env: set LLM_PROVIDER to openai, anthropic, or gemini, then provide the matching key (OPENAI_API_KEY, ANTHROPIC_API_KEY, or GEMINI_API_KEY) and optional model override (OPENAI_MODEL, ANTHROPIC_MODEL, GEMINI_MODEL). Toggle ENABLE_WEB_SEARCH to enable provider-native web search.",
+    "usageTitle": "My token usage",
+    "usageRange": "Last {days} days",
+    "usageEmpty": "No LLM activity recorded in the last 30 days.",
+    "limit": {
+      "none": "No rate limits set — your account has unlimited LLM usage.",
+      "warn": "Approaching limit",
+      "exceeded": "Limit reached"
+    }
   },
   "Report": {
     "demoBanner": "Demo mode: no LLM provider API key is configured, so no real clinical analysis was performed.",
@@ -344,6 +379,20 @@
     "likelihoodMedium": "medium",
     "likelihoodLow": "low",
     "empty": "—"
+  },
+  "Limit": {
+    "exceeded": "{window} LLM token limit reached ({used} / {limit}). Wait or ask your administrator to raise the limit.",
+    "window": {
+      "minute": "Per-minute",
+      "day": "Daily",
+      "week": "Weekly"
+    }
+  },
+  "Tier": {
+    "free": "Free",
+    "plus": "Plus",
+    "pro": "Pro",
+    "max": "Max"
   },
   "Print": {
     "hint": "Use your browser's print dialog to save as PDF.",

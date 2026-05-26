@@ -13,7 +13,7 @@ foreach ($models as $m) { if ($m['source'] === 'api') { $source = 'api'; break; 
 
 $flashKindCls = [
     'ok' => 'bg-vital-50 text-vital-700 border-vital-500/30',
-    'warn' => 'bg-amber-50 text-amber-800 border-amber-500/30',
+    'warn' => 'bg-ink-50 text-ink-700 border-ink-300',
 ];
 $flashLabel = [
     'saved' => t('AdminSettings.flash.saved'),

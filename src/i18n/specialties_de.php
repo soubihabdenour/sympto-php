@@ -8,8 +8,8 @@ declare(strict_types=1);
 return [
     'general' => [
         'name' => 'Allgemeinmedizin-Agent',
-        'specialty' => 'Allgemein- / Innere Medizin',
-        'description' => 'Breite internistische Erstlinien-Argumentation über mehrere Systeme. Hilfreich, wenn die Hauptbeschwerde unspezifisch ist.',
+        'specialty' => 'Allgemeinmedizin / Hausarztpraxis',
+        'description' => 'Breite hausärztliche Erstlinien-Argumentation über mehrere Systeme. Hilfreich, wenn die Hauptbeschwerde unspezifisch oder ambulant ist.',
         'required_context' => [
             'Alter und biologisches Geschlecht',
             'Hauptbeschwerde mit Beginn, Dauer und Schweregrad',
@@ -25,6 +25,31 @@ return [
             'Rasch progrediente Symptome über Stunden bis Tage',
             'Unbeabsichtigter Gewichtsverlust >5 % in 6 Monaten',
             'Neu aufgetretenes Fieber bei immunsupprimiertem Patienten',
+        ],
+    ],
+
+    'internal-medicine' => [
+        'name' => 'Innere-Medizin-Agent',
+        'specialty' => 'Innere Medizin',
+        'description' => 'Stationäre und ambulante internistische Versorgung von Erwachsenen mit Schwerpunkt Multimorbidität, chronische Krankheitsverwaltung, Polypharmazie-Review und stationäre Organübergreifende Argumentation.',
+        'required_context' => [
+            'Alter, biologisches Geschlecht, Frailty / Funktionsstatus (ECOG, Barthel)',
+            'Aktive Problemliste und chronische Erkrankungen (Hypertonie, Diabetes, CKD, HI, COPD usw.)',
+            'Vollständige Medikamentenliste inkl. OTC, Nahrungsergänzungsmittel, kürzliche Antibiotika',
+            'Vitalzeichen (RR, HF, AF, SpO2, Temperatur) mit Verlauf bei Hospitalisation',
+            'Basis- und aktuelle Labore: BB, E-lyte, Leberwerte, INR, Troponin/BNP, Laktat, BGA bei akuter Situation',
+            'Allergien und frühere unerwünschte Arzneimittelwirkungen',
+            'Patientenverfügung / Therapieziel bei möglicher End-of-Life-Situation',
+        ],
+        'common_red_flags' => [
+            'Sepsis: qSOFA ≥2, Laktat ≥2 oder Organdysfunktion mit Infektion',
+            'Hämodynamische Instabilität (sysRR <90, Schockindex >1, Hypoperfusionszeichen)',
+            'Akute respiratorische Insuffizienz (SpO2 <90 % unter Raumluft, PaCO2 ≥50 mit Azidose)',
+            'Schwere Elektrolytentgleisung (K >6 oder <2,5, Na <120 oder >160, Ca >13)',
+            'Akutes Nierenversagen KDIGO ≥2 mit Anurie oder Überwässerung',
+            'GI-Blutung mit hämodynamischer Beeinträchtigung oder Hb-Abfall ≥2 g/dL',
+            'Neues fokales neurologisches Defizit oder anhaltende GCS <15 (Delir vs. Schlaganfall)',
+            'Polypharmazie-Interaktion mit QTc-Verlängerung, Serotonin-Syndrom oder NSAR-induzierter ANI',
         ],
     ],
 

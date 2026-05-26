@@ -39,18 +39,11 @@ $profileRows = [
     ['question', 'clinical_question'],
 ];
 ?>
-<div class="report-view space-y-5">
-    <?php if (!empty($report['demoMode'])): ?>
-        <div class="card bg-amber-50 border-amber-200 p-3 text-xs text-amber-900 flex items-start gap-2">
-            <?= icon('alert', 'w-4 h-4 mt-0.5 shrink-0 text-amber-700') ?>
-            <span><?= h(t('Report.demoBanner')) ?></span>
-        </div>
-    <?php endif; ?>
-
+<div class="report-view space-y-3">
     <?php if (!empty($report['needsFollowUp']) && !empty($report['followUpQuestions'])): ?>
-        <section class="card border-brand-200 bg-brand-50 p-4">
-            <h3 class="text-sm font-semibold mb-2 flex items-center gap-2 text-brand-900">
-                <?= icon('message', 'w-4 h-4 text-brand-700') ?>
+        <section class="card border-brand-200 bg-brand-50 p-3">
+            <h3 class="text-xs font-semibold mb-1.5 flex items-center gap-1.5 text-brand-900 uppercase tracking-wide">
+                <?= icon('message', 'w-3.5 h-3.5 text-brand-700') ?>
                 <span><?= h(t('Report.followUpTitle')) ?></span>
             </h3>
             <?= $bullets($report['followUpQuestions']) ?>
@@ -59,8 +52,8 @@ $profileRows = [
 
     <!-- Table 1: Patient profile & vital signs -->
     <section class="card overflow-hidden">
-        <h3 class="px-4 py-3 border-b border-ink-200 text-sm font-semibold flex items-center gap-2 text-ink-900">
-            <?= icon('user', 'w-4 h-4 text-brand-700') ?>
+        <h3 class="px-3 py-2 border-b border-ink-200 text-xs font-semibold flex items-center gap-1.5 text-ink-900 uppercase tracking-wide bg-ink-50/50">
+            <?= icon('user', 'w-3.5 h-3.5 text-brand-700') ?>
             <span><?= h(t('Report.t1')) ?></span>
         </h3>
         <div class="overflow-x-auto">
@@ -94,8 +87,8 @@ $profileRows = [
 
     <!-- Table 2: Clinical presentation & red flags -->
     <section class="card overflow-hidden">
-        <h3 class="px-4 py-3 border-b border-ink-200 text-sm font-semibold flex items-center gap-2 text-ink-900">
-            <?= icon('clipboard', 'w-4 h-4 text-brand-700') ?>
+        <h3 class="px-3 py-2 border-b border-ink-200 text-xs font-semibold flex items-center gap-1.5 text-ink-900 uppercase tracking-wide bg-ink-50/50">
+            <?= icon('clipboard', 'w-3.5 h-3.5 text-brand-700') ?>
             <span><?= h(t('Report.t2')) ?></span>
         </h3>
         <div class="overflow-x-auto">
@@ -126,8 +119,8 @@ $profileRows = [
 
     <!-- Table 3: Differential diagnosis matrix -->
     <section class="card overflow-hidden">
-        <h3 class="px-4 py-3 border-b border-ink-200 text-sm font-semibold flex items-center gap-2 text-ink-900">
-            <?= icon('sparkles', 'w-4 h-4 text-brand-700') ?>
+        <h3 class="px-3 py-2 border-b border-ink-200 text-xs font-semibold flex items-center gap-1.5 text-ink-900 uppercase tracking-wide bg-ink-50/50">
+            <?= icon('sparkles', 'w-3.5 h-3.5 text-brand-700') ?>
             <span><?= h(t('Report.t3')) ?></span>
         </h3>
         <div class="overflow-x-auto">
@@ -169,8 +162,8 @@ $profileRows = [
 
     <!-- Table 4: Clinical action plan -->
     <section class="card overflow-hidden">
-        <h3 class="px-4 py-3 border-b border-ink-200 text-sm font-semibold flex items-center gap-2 text-ink-900">
-            <?= icon('pulse', 'w-4 h-4 text-brand-700') ?>
+        <h3 class="px-3 py-2 border-b border-ink-200 text-xs font-semibold flex items-center gap-1.5 text-ink-900 uppercase tracking-wide bg-ink-50/50">
+            <?= icon('pulse', 'w-3.5 h-3.5 text-brand-700') ?>
             <span><?= h(t('Report.t4')) ?></span>
         </h3>
         <div class="overflow-x-auto">
@@ -204,15 +197,15 @@ $profileRows = [
     </section>
 
     <!-- Final recommendation -->
-    <section class="card border-brand-200 bg-brand-50 p-4">
-        <h3 class="text-sm font-semibold mb-2 flex items-center gap-2 text-brand-900">
-            <?= icon('check-circle', 'w-4 h-4 text-brand-700') ?>
+    <section class="card border-brand-200 bg-brand-50 p-3">
+        <h3 class="text-xs font-semibold mb-1.5 flex items-center gap-1.5 text-brand-900 uppercase tracking-wide">
+            <?= icon('check-circle', 'w-3.5 h-3.5 text-brand-700') ?>
             <span><?= h(t('Report.s10')) ?></span>
         </h3>
-        <p class="text-sm leading-relaxed whitespace-pre-wrap text-ink-800"><?= h(($report['finalRecommendation'] ?? '') !== '' ? $report['finalRecommendation'] : $empty) ?></p>
+        <p class="text-sm leading-snug whitespace-pre-wrap text-ink-800"><?= h(($report['finalRecommendation'] ?? '') !== '' ? $report['finalRecommendation'] : $empty) ?></p>
         <?php $u = $report['uncertainty'] ?? 'high'; ?>
-        <div class="mt-3 inline-flex items-center gap-2 text-xs text-ink-600 bg-white border border-ink-200 rounded-md px-2.5 py-1">
-            <?= icon('info', 'w-3.5 h-3.5 text-ink-500') ?>
+        <div class="mt-2 inline-flex items-center gap-1.5 text-[11px] text-ink-600 bg-white border border-ink-200 rounded-md px-2 py-0.5">
+            <?= icon('info', 'w-3 h-3 text-ink-500') ?>
             <span><?= h(t('Report.uncertainty')) ?></span>
             <span class="font-semibold text-ink-900"><?= h($labelForLikelihood[$u] ?? $u) ?></span>
         </div>
@@ -220,19 +213,19 @@ $profileRows = [
 
     <!-- Evidence summary + citations -->
     <?php if (($report['evidenceSummary'] ?? '') !== '' || !empty($report['citations'])): ?>
-        <section class="card p-4">
-            <h3 class="text-sm font-semibold mb-2 flex items-center gap-2 text-ink-900">
-                <?= icon('search', 'w-4 h-4 text-brand-700') ?>
+        <section class="card p-3">
+            <h3 class="text-xs font-semibold mb-1.5 flex items-center gap-1.5 text-ink-900 uppercase tracking-wide">
+                <?= icon('search', 'w-3.5 h-3.5 text-brand-700') ?>
                 <span><?= h(t('Report.s9')) ?></span>
             </h3>
             <?php if (($report['evidenceSummary'] ?? '') !== ''): ?>
-                <p class="text-sm leading-relaxed whitespace-pre-wrap text-ink-800"><?= h($report['evidenceSummary']) ?></p>
+                <p class="text-sm leading-snug whitespace-pre-wrap text-ink-800"><?= h($report['evidenceSummary']) ?></p>
             <?php endif; ?>
             <?php if (!empty($report['citations'])): ?>
-                <ol class="mt-3 space-y-1.5 text-sm">
+                <ol class="mt-2 space-y-1 text-xs">
                     <?php foreach ($report['citations'] as $c): ?>
-                        <li class="flex items-start gap-2">
-                            <span class="text-ink-400 mt-0.5"><?= icon('paperclip', 'w-3.5 h-3.5') ?></span>
+                        <li class="flex items-start gap-1.5">
+                            <span class="text-ink-400 mt-0.5"><?= icon('paperclip', 'w-3 h-3') ?></span>
                             <span>
                                 <span class="font-medium text-ink-900"><?= h($c['title']) ?></span>
                                 <?php if (!empty($c['source'])): ?><span class="text-ink-500"> — <?= h($c['source']) ?></span><?php endif; ?>
@@ -246,17 +239,17 @@ $profileRows = [
     <?php endif; ?>
 
     <!-- Disclaimer / metadata -->
-    <section class="card border-ink-200 bg-ink-50 p-4">
-        <h3 class="text-sm font-semibold mb-2 flex items-center gap-2 text-ink-700">
-            <?= icon('shield', 'w-4 h-4 text-ink-500') ?>
+    <section class="card border-ink-200 bg-ink-50 p-2.5">
+        <h3 class="text-[11px] font-semibold mb-1 flex items-center gap-1.5 text-ink-700 uppercase tracking-wide">
+            <?= icon('shield', 'w-3 h-3 text-ink-500') ?>
             <span><?= h(t('Report.s11')) ?></span>
         </h3>
-        <p class="text-xs leading-relaxed text-ink-700"><?= h($report['safetyDisclaimer'] ?? '') ?></p>
+        <p class="text-[11px] leading-snug text-ink-700"><?= h($report['safetyDisclaimer'] ?? '') ?></p>
         <?php if (!empty($report['generatedAt'])):
             $when = (new DateTime($report['generatedAt']))->format('Y-m-d H:i');
             $model = !empty($report['model']) ? ' · ' . $report['model'] : '';
         ?>
-            <p class="text-[11px] text-ink-500 mt-2 flex items-center gap-1">
+            <p class="text-[10px] text-ink-500 mt-1 flex items-center gap-1">
                 <?= icon('clock', 'w-3 h-3') ?>
                 <span><?= h(t('Report.generated', ['when' => $when])) . h($model) ?></span>
             </p>
@@ -265,10 +258,11 @@ $profileRows = [
 </div>
 
 <style>
-.report-view .report-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-.report-view .report-table th, .report-view .report-table td { border: 1px solid #e2e8f0; padding: 0.5rem 0.75rem; text-align: left; vertical-align: top; }
-.report-view .report-table thead th { background: #f8fafc; font-weight: 600; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; color: #64748b; }
+.report-view .report-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; line-height: 1.35; }
+.report-view .report-table th, .report-view .report-table td { border: 1px solid #e2e8f0; padding: 0.3rem 0.5rem; text-align: left; vertical-align: top; }
+.report-view .report-table thead th { background: #f8fafc; font-weight: 600; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.04em; color: #64748b; }
 .report-view .report-table tbody tr:hover { background: #fafafa; }
-.report-view .report-table ul { margin: 0; }
-.report-view .report-table li { margin: 0.1em 0; }
+.report-view .report-table ul { margin: 0; padding-left: 0.9rem; list-style: disc outside; }
+.report-view .report-table ul li { margin: 0; padding-left: 0.05em; line-height: 1.3; }
+.report-view .report-table ul li::marker { color: rgba(15, 23, 42, 0.5); font-size: 0.7em; }
 </style>

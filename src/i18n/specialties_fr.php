@@ -8,8 +8,8 @@ declare(strict_types=1);
 return [
     'general' => [
         'name' => 'Agent de médecine générale',
-        'specialty' => 'Médecine générale / Médecine interne',
-        'description' => "Raisonnement de médecine interne de première ligne, large et multi-systémique. Utile lorsque le motif de consultation est non spécifique.",
+        'specialty' => 'Médecine générale / Soins primaires',
+        'description' => "Raisonnement de soins primaires de première ligne, large et multi-systémique. Utile lorsque le motif de consultation est non spécifique ou ambulatoire.",
         'required_context' => [
             'Âge et sexe biologique',
             'Motif de consultation : début, durée, sévérité',
@@ -25,6 +25,31 @@ return [
             'Symptômes rapidement progressifs sur heures à jours',
             'Perte de poids involontaire >5 % en 6 mois',
             'Fièvre récente chez un patient immunodéprimé',
+        ],
+    ],
+
+    'internal-medicine' => [
+        'name' => 'Agent de médecine interne',
+        'specialty' => 'Médecine interne',
+        'description' => "Médecine interne hospitalière et ambulatoire chez l'adulte, centrée sur la polymorbidité, la prise en charge des maladies chroniques, la révision des polymédications et le raisonnement hospitalier multi-systémique.",
+        'required_context' => [
+            "Âge, sexe biologique, fragilité / statut fonctionnel (ECOG, Barthel)",
+            "Liste des problèmes actifs et comorbidités chroniques (HTA, diabète, IRC, IC, BPCO, etc.)",
+            "Liste complète des médicaments y compris OTC, suppléments, antibiothérapie récente",
+            "Signes vitaux (TA, FC, FR, SpO2, température) avec tendance si hospitalisé",
+            "Bilans biologiques actuel et de référence : NFS, ionogramme, bilan hépatique, INR, troponine/BNP, lactate, GDS si aigu",
+            "Allergies et antécédents d'effets indésirables médicamenteux",
+            "Directives anticipées / niveau de soins en cas de problématique de fin de vie",
+        ],
+        'common_red_flags' => [
+            "Sepsis : qSOFA ≥2, lactate ≥2 ou dysfonction d'organe avec infection",
+            "Instabilité hémodynamique (PAS <90, index de choc >1, signes d'hypoperfusion)",
+            "Insuffisance respiratoire aiguë (SpO2 <90 % en AA, PaCO2 ≥50 avec acidose)",
+            "Trouble électrolytique sévère (K >6 ou <2.5, Na <120 ou >160, Ca >13)",
+            "IRA KDIGO ≥2 avec anurie ou surcharge volémique",
+            "Hémorragie digestive avec retentissement hémodynamique ou chute Hb ≥2 g/dL",
+            "Déficit neurologique focal nouveau ou GCS <15 persistant (confusion vs AVC)",
+            "Interaction médicamenteuse à risque (QT long, syndrome sérotoninergique, IRA aux AINS)",
         ],
     ],
 

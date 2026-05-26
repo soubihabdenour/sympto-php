@@ -45,17 +45,63 @@ if (is_admin()) {
             <?= icon('globe', 'w-4 h-4 text-ink-500') ?>
             <?php require TEMPLATES_DIR . '/components/locale_switcher.php'; ?>
         </div>
-        <?php $d = current_doctor(); if ($d): ?>
+        <?php $d = current_doctor(); if ($d):
+            $sbStatus = doctor_token_limits_status((int) $d['id']);
+            $sbTier = $d['tier'] ?? tier_default();
+            $sbTierBadge = [
+                'free' => 'bg-ink-100 text-ink-700',
+                'plus' => 'bg-brand-50 text-brand-800',
+                'pro'  => 'bg-vital-50 text-vital-700',
+                'max'  => 'bg-gradient-to-r from-brand-700 to-brand-900 text-white',
+            ][$sbTier] ?? '';
+            // Pick the tightest (lowest remaining_pct) active window for the battery.
+            $sbTightest = null; $sbWindow = null;
+            foreach ($sbStatus as $w => $s) {
+                if ($s['remaining_pct'] === null) continue;
+                if ($sbTightest === null || $s['remaining_pct'] < $sbTightest['remaining_pct']) {
+                    $sbTightest = $s;
+                    $sbWindow = $w;
+                }
+            }
+            if ($sbTightest !== null) {
+                $remPct = $sbTightest['remaining_pct'];
+                $battCls = $remPct >= 50 ? 'bg-vital-500' : ($remPct >= 20 ? 'bg-amber-500' : 'bg-red-500');
+            } else {
+                $remPct = null; $battCls = '';
+            }
+        ?>
             <div class="rounded-lg bg-ink-50 border border-ink-200 px-3 py-2.5">
-                <div class="flex items-center gap-2.5">
-                    <div class="w-9 h-9 rounded-full bg-brand-100 text-brand-800 grid place-items-center text-sm font-semibold shrink-0">
-                        <?= h(strtoupper(substr($d['full_name'] ?? '?', 0, 1))) ?>
+                <a href="/settings" class="block group" title="<?= h(t('Nav.profileTitle')) ?>">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-9 h-9 rounded-full bg-brand-100 text-brand-800 grid place-items-center text-sm font-semibold shrink-0">
+                            <?= h(strtoupper(substr($d['full_name'] ?? '?', 0, 1))) ?>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="text-sm font-semibold text-ink-900 truncate group-hover:text-brand-800"><?= h($d['full_name']) ?></div>
+                            <div class="text-[11px] text-ink-500 truncate"><?= h($d['email']) ?></div>
+                        </div>
                     </div>
-                    <div class="min-w-0">
-                        <div class="text-sm font-semibold text-ink-900 truncate"><?= h($d['full_name']) ?></div>
-                        <div class="text-[11px] text-ink-500 truncate"><?= h($d['email']) ?></div>
+                    <div class="mt-2.5">
+                        <div class="flex items-center justify-between text-[10px] text-ink-500 mb-1 uppercase tracking-wide font-medium">
+                            <span class="flex items-center gap-1.5">
+                                <span class="pill px-1.5 py-0 text-[9px] <?= $sbTierBadge ?>"><?= h(t('Tier.' . $sbTier)) ?></span>
+                                <span><?= h($sbWindow === null ? '' : t('Nav.limitWindow.' . $sbWindow)) ?></span>
+                            </span>
+                            <span class="tabular-nums text-ink-700 font-semibold">
+                                <?= $remPct === null ? '∞' : $remPct . '%' ?>
+                            </span>
+                        </div>
+                        <?php if ($remPct === null): ?>
+                            <div class="battery">
+                                <div class="battery-fill bg-vital-500" style="width: 100%"></div>
+                            </div>
+                        <?php else: ?>
+                            <div class="battery">
+                                <div class="battery-fill <?= $battCls ?>" style="width: <?= $remPct ?>%"></div>
+                            </div>
+                        <?php endif; ?>
                     </div>
-                </div>
+                </a>
                 <form method="post" action="/logout" class="mt-2">
                     <?= csrf_field() ?>
                     <button type="submit" class="btn-ghost w-full justify-center text-ink-600 hover:text-ink-900">
@@ -72,3 +118,31 @@ if (is_admin()) {
         <?php endif; ?>
     </div>
 </aside>
+<style>
+.battery {
+    position: relative;
+    width: 100%;
+    height: 14px;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 3px;
+    background: #fff;
+    padding: 1px;
+    box-sizing: border-box;
+}
+.battery::after {
+    content: '';
+    position: absolute;
+    right: -4px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 6px;
+    background: #cbd5e1;
+    border-radius: 0 1px 1px 0;
+}
+.battery-fill {
+    height: 100%;
+    border-radius: 1.5px;
+    transition: width 0.3s ease, background-color 0.3s ease;
+}
+</style>

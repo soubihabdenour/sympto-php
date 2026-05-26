@@ -97,7 +97,8 @@ route('GET', '/agents', function () {
 
 route('GET', '/settings', function () {
     $d = require_doctor();
-    render('settings', ['doctor' => $d]);
+    $usage = aggregate_token_usage((int) $d['id'], 30);
+    render('settings', ['doctor' => $d, 'usage' => $usage]);
 });
 
 route('GET', '/cases/new', function () {
@@ -172,6 +173,22 @@ route('POST', '/cases/{id}/patient', function (string $id) {
     redirect("/cases/$cid");
 });
 
+route('POST', '/cases/{id}/status', function (string $id) {
+    $d = require_doctor();
+    csrf_check();
+    $cid = (int) $id;
+    if (!ensure_case_access($cid, (int) $d['id'])) not_found();
+    $status = (string) ($_POST['status'] ?? '');
+    $allowed = ['OPEN', 'IN_PROGRESS', 'REPORTED', 'CLOSED'];
+    if (!in_array($status, $allowed, true)) bad_request('invalid status');
+    db_exec(
+        "UPDATE cases SET status = ?, updated_at = datetime('now') WHERE id = ?",
+        [$status, $cid]
+    );
+    audit('case.status', (int) $d['id'], $cid, ['status' => $status]);
+    redirect("/cases/$cid");
+});
+
 route('POST', '/cases/{id}/specialty', function (string $id) {
     $d = require_doctor();
     csrf_check();
@@ -238,6 +255,17 @@ route('POST', '/cases/{id}/messages', function (string $id) {
     csrf_check();
     $cid = (int) $id;
     if (!ensure_case_access($cid, (int) $d['id'])) not_found();
+    try {
+        assert_doctor_within_token_limit((int) $d['id']);
+    } catch (TokenLimitExceeded $e) {
+        json_response([
+            'error' => t('Limit.exceeded', [
+                'window' => t('Limit.window.' . $e->window),
+                'used' => $e->used,
+                'limit' => $e->limit,
+            ]),
+        ], 429);
+    }
     $content = trim((string) ($_POST['content'] ?? ''));
     if ($content === '' || mb_strlen($content) > 8000) {
         json_response(['error' => 'invalid content'], 400);
@@ -378,13 +406,33 @@ route('GET', '/admin/doctors/{id}', function (string $id) {
         [$did]
     );
     $usage = aggregate_token_usage($did, 30);
+    $limitsStatus = doctor_token_limits_status($did);
+    $currentTier = (string) ($target['tier'] ?? tier_default());
     render('admin_doctor', [
         'doctor' => $admin,
         'target' => $target,
         'cases' => $cases,
         'logs' => $logs,
         'usage' => $usage,
+        'limits_status' => $limitsStatus,
+        'current_tier' => $currentTier,
+        'limit_flash' => $_SESSION['admin_limit_flash'] ?? null,
     ]);
+    unset($_SESSION['admin_limit_flash']);
+});
+
+route('POST', '/admin/doctors/{id}/tier', function (string $id) {
+    $admin = require_admin();
+    csrf_check();
+    $did = (int) $id;
+    $target = db_fetch('SELECT id FROM doctors WHERE id = ?', [$did]);
+    if (!$target) not_found();
+    $tier = (string) ($_POST['tier'] ?? '');
+    if (!tier_is_valid($tier)) bad_request('invalid tier');
+    db_exec('UPDATE doctors SET tier = ? WHERE id = ?', [$tier, $did]);
+    audit('admin.doctor.tier.set', (int) $admin['id'], null, ['target_doctor_id' => $did, 'tier' => $tier]);
+    $_SESSION['admin_limit_flash'] = ['kind' => 'ok', 'message' => 'tier_set', 'tier' => $tier];
+    redirect('/admin/doctors/' . $did);
 });
 
 route('POST', '/cases/{id}/report', function (string $id) {
@@ -392,6 +440,17 @@ route('POST', '/cases/{id}/report', function (string $id) {
     csrf_check();
     $cid = (int) $id;
     if (!ensure_case_access($cid, (int) $d['id'])) not_found();
+    try {
+        assert_doctor_within_token_limit((int) $d['id']);
+    } catch (TokenLimitExceeded $e) {
+        json_response([
+            'error' => t('Limit.exceeded', [
+                'window' => t('Limit.window.' . $e->window),
+                'used' => $e->used,
+                'limit' => $e->limit,
+            ]),
+        ], 429);
+    }
     $c = db_fetch('SELECT * FROM cases WHERE id = ?', [$cid]);
     $patient = db_fetch('SELECT * FROM patient_data WHERE case_id = ?', [$cid]) ?? [];
     $docs = db_all(

@@ -16,6 +16,7 @@ $title ??= 'MedAgent AI';
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.tailwindcss.com"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 <script>
   tailwind.config = { theme: { extend: {
     fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'], mono: ['JetBrains Mono', 'ui-monospace', 'monospace'] },
@@ -83,7 +84,6 @@ $title ??= 'MedAgent AI';
         <?= icon('plus', 'w-5 h-5') ?>
       </a>
     </header>
-    <?php $disclaimer_variant = 'banner'; require TEMPLATES_DIR . '/components/disclaimer.php'; ?>
     <main class="flex-1"><?= $page_content ?></main>
   </div>
 </div>

@@ -115,6 +115,21 @@ function db_init(): void {
         );
     SQL);
 
+    // Additive migration: per-doctor rolling-window token caps (NULL = unlimited for that window).
+    $cols = $pdo->query("PRAGMA table_info(doctors)")->fetchAll();
+    $colNames = array_map(fn($c) => $c['name'] ?? '', $cols);
+    foreach (['monthly_token_limit', 'tokens_per_minute_limit', 'tokens_per_day_limit', 'tokens_per_week_limit'] as $c) {
+        if (!in_array($c, $colNames, true)) {
+            $pdo->exec("ALTER TABLE doctors ADD COLUMN $c INTEGER");
+        }
+    }
+    // Plan tier: 'free' | 'plus' | 'pro' | 'max'. Default 'free'.
+    if (!in_array('tier', $colNames, true)) {
+        $pdo->exec("ALTER TABLE doctors ADD COLUMN tier TEXT NOT NULL DEFAULT 'free'");
+    }
+    // Speed up the time-window usage queries.
+    $pdo->exec("CREATE INDEX IF NOT EXISTS idx_audit_doctor_time ON audit_logs(doctor_id, created_at)");
+
     // Seed demo doctor if no doctors exist
     $count = (int) $pdo->query('SELECT COUNT(*) FROM doctors')->fetchColumn();
     if ($count === 0) {

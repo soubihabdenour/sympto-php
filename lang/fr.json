@@ -31,7 +31,16 @@
     "tagline": "Aide à la décision clinique",
     "signIn": "Se connecter",
     "signOut": "Se déconnecter",
-    "admin": "Admin"
+    "admin": "Admin",
+    "profileTitle": "Ouvrir le profil et l'usage",
+    "usageTokens": "Jetons (30j)",
+    "usageCost": "Coût (30j)",
+    "limitMonth": "Plafond restant",
+    "limitWindow": {
+      "minute": "Plafond · minute",
+      "day": "Plafond · jour",
+      "week": "Plafond · semaine"
+    }
   },
   "Admin": {
     "title": "Admin · Suivi d'usage",
@@ -43,6 +52,23 @@
     "byModelTitle": "Usage par modèle",
     "byActionTitle": "Usage par action",
     "backToList": "Retour aux médecins",
+    "limit": {
+      "windowLabel": {
+        "minute": "Par minute",
+        "day": "Par jour",
+        "week": "Par semaine"
+      },
+      "unset": "illimité"
+    },
+    "tier": {
+      "title": "Plan tarifaire",
+      "hint": "Le plan définit les plafonds par minute, par jour et par semaine.",
+      "save": "Appliquer le plan",
+      "unsaved": "modification non enregistrée",
+      "flash": {
+        "set": "Plan défini sur {tier}."
+      }
+    },
     "joined": "Inscrit le {when}",
     "emptyDoctors": "Aucun médecin enregistré.",
     "emptyCases": "Aucun dossier pour ce médecin.",
@@ -204,6 +230,7 @@
   "Case": {
     "back": "← Retour aux dossiers",
     "statusLabel": "statut :",
+    "statusChange": "Changer le statut du dossier",
     "agentLabel": "Agent",
     "agentChange": "changer",
     "generateReport": "Générer le rapport complet",
@@ -296,7 +323,15 @@
     "webSearch": "Recherche web",
     "enabled": "Activée",
     "disabledNote": "Désactivée — le module de recherche renvoie des espaces réservés étiquetés",
-    "envHint": "Configurez dans .env : définissez LLM_PROVIDER sur openai, anthropic ou gemini, puis fournissez la clé correspondante (OPENAI_API_KEY, ANTHROPIC_API_KEY ou GEMINI_API_KEY) et le modèle optionnel (OPENAI_MODEL, ANTHROPIC_MODEL, GEMINI_MODEL). Activez ENABLE_WEB_SEARCH pour la recherche web native du fournisseur."
+    "envHint": "Configurez dans .env : définissez LLM_PROVIDER sur openai, anthropic ou gemini, puis fournissez la clé correspondante (OPENAI_API_KEY, ANTHROPIC_API_KEY ou GEMINI_API_KEY) et le modèle optionnel (OPENAI_MODEL, ANTHROPIC_MODEL, GEMINI_MODEL). Activez ENABLE_WEB_SEARCH pour la recherche web native du fournisseur.",
+    "usageTitle": "Mon usage des jetons",
+    "usageRange": "Derniers {days} jours",
+    "usageEmpty": "Aucune activité LLM enregistrée sur les 30 derniers jours.",
+    "limit": {
+      "none": "Aucun plafond défini — votre compte dispose d'un usage LLM illimité.",
+      "warn": "Plafond bientôt atteint",
+      "exceeded": "Plafond atteint"
+    }
   },
   "Report": {
     "demoBanner": "Mode démo : aucune clé API de fournisseur LLM n'est configurée, aucune analyse clinique réelle n'a donc été effectuée.",
@@ -344,6 +379,20 @@
     "likelihoodMedium": "moyenne",
     "likelihoodLow": "faible",
     "empty": "—"
+  },
+  "Limit": {
+    "exceeded": "Plafond {window} de jetons LLM atteint ({used} / {limit}). Patientez ou demandez à votre administrateur d'augmenter le plafond.",
+    "window": {
+      "minute": "par minute",
+      "day": "journalier",
+      "week": "hebdomadaire"
+    }
+  },
+  "Tier": {
+    "free": "Gratuit",
+    "plus": "Plus",
+    "pro": "Pro",
+    "max": "Max"
   },
   "Print": {
     "hint": "Utilisez la boîte de dialogue d'impression du navigateur pour enregistrer en PDF.",
