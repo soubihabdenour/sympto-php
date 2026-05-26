@@ -4,7 +4,7 @@ $disclaimer_variant ??= 'card';
 $text = t('Disclaimer.text');
 ?>
 <?php if ($disclaimer_variant === 'banner'): ?>
-    <div class="bg-amber-50 border-b border-amber-200 text-amber-900 px-5 py-2 flex items-center gap-2 text-[12px] leading-snug">
+    <div class="bg-amber-50 border-b border-amber-200 text-amber-900 px-5 py-2 flex items-center gap-2 text-[12px] leading-snug no-print">
         <?= icon('shield', 'w-4 h-4 shrink-0 text-amber-700') ?>
         <span><?= h($text) ?></span>
     </div>

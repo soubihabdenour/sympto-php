@@ -1,46 +1,45 @@
 <?php
 require_once TEMPLATES_DIR . '/components/icons.php';
 // $report (associative array matching schema)
+// $patient (associative array from outer case_view scope) — used for Table 1
+$patient = $patient ?? [];
+
 $pillForLikelihood = [
-    'high' => 'bg-red-50 text-red-700 ring-1 ring-red-200',
+    'high'   => 'bg-red-50 text-red-700 ring-1 ring-red-200',
     'medium' => 'bg-amber-50 text-amber-700 ring-1 ring-amber-200',
-    'low' => 'bg-ink-100 text-ink-700 ring-1 ring-ink-200',
+    'low'    => 'bg-ink-100 text-ink-700 ring-1 ring-ink-200',
 ];
 $labelForLikelihood = [
-    'high' => t('Report.likelihoodHigh'),
+    'high'   => t('Report.likelihoodHigh'),
     'medium' => t('Report.likelihoodMedium'),
-    'low' => t('Report.likelihoodLow'),
+    'low'    => t('Report.likelihoodLow'),
 ];
 $empty = t('Report.empty');
-$section = function (string $title, callable $body, string $tone = 'default', string $iconName = 'clipboard') {
-    $cls = match ($tone) {
-        'danger' => 'border-red-200 bg-red-50',
-        'info'   => 'border-brand-200 bg-brand-50',
-        'muted'  => 'border-ink-200 bg-ink-50',
-        default  => '',
-    };
-    $iconTone = match ($tone) {
-        'danger' => 'text-red-700',
-        'info'   => 'text-brand-700',
-        'muted'  => 'text-ink-500',
-        default  => 'text-brand-700',
-    };
-    echo '<section class="card p-5 ' . $cls . '">';
-    echo '<h3 class="text-sm font-semibold mb-3 flex items-center gap-2 text-ink-900"><span class="' . $iconTone . '">' . icon($iconName, 'w-4 h-4') . '</span><span>' . h($title) . '</span></h3><div>';
-    $body();
-    echo '</div></section>';
-};
-$bullets = function (array $items, bool $small = false) use ($empty) {
-    if (!$items) { echo '<p class="text-sm text-ink-500">' . h($empty) . '</p>'; return; }
-    $size = $small ? 'text-xs' : 'text-sm';
-    echo '<ul class="space-y-1.5 ' . $size . '">';
+
+$bullets = static function (array $items) use ($empty): string {
+    if (!$items) return '<span class="text-ink-500">' . h($empty) . '</span>';
+    $out = '<ul class="list-disc pl-4 space-y-0.5">';
     foreach ($items as $it) {
-        echo '<li class="flex items-start gap-2"><span class="w-1 h-1 rounded-full bg-ink-400 mt-2 shrink-0"></span><span>' . h((string) $it) . '</span></li>';
+        $out .= '<li>' . h((string) $it) . '</li>';
     }
-    echo '</ul>';
+    return $out . '</ul>';
 };
+
+$profileRows = [
+    ['ageYears', 'age_years'],
+    ['sex', 'sex'],
+    ['symptoms', 'symptoms'],
+    ['vitals', 'vital_signs'],
+    ['labs', 'lab_values'],
+    ['imaging', 'imaging_summary'],
+    ['history', 'medical_history'],
+    ['medications', 'medications'],
+    ['allergies', 'allergies'],
+    ['initialDx', 'initial_diagnosis'],
+    ['question', 'clinical_question'],
+];
 ?>
-<div class="space-y-4">
+<div class="report-view space-y-5">
     <?php if (!empty($report['demoMode'])): ?>
         <div class="card bg-amber-50 border-amber-200 p-3 text-xs text-amber-900 flex items-start gap-2">
             <?= icon('alert', 'w-4 h-4 mt-0.5 shrink-0 text-amber-700') ?>
@@ -48,101 +47,228 @@ $bullets = function (array $items, bool $small = false) use ($empty) {
         </div>
     <?php endif; ?>
 
-    <?php if (!empty($report['needsFollowUp']) && !empty($report['followUpQuestions'])):
-        $section(t('Report.followUpTitle'), function () use ($bullets, $report) { $bullets($report['followUpQuestions']); }, 'info', 'message');
-    endif; ?>
+    <?php if (!empty($report['needsFollowUp']) && !empty($report['followUpQuestions'])): ?>
+        <section class="card border-brand-200 bg-brand-50 p-4">
+            <h3 class="text-sm font-semibold mb-2 flex items-center gap-2 text-brand-900">
+                <?= icon('message', 'w-4 h-4 text-brand-700') ?>
+                <span><?= h(t('Report.followUpTitle')) ?></span>
+            </h3>
+            <?= $bullets($report['followUpQuestions']) ?>
+        </section>
+    <?php endif; ?>
 
-    <?php if (!empty($report['redFlags'])):
-        $section(t('Report.redFlagsTitle'), function () use ($bullets, $report) { $bullets($report['redFlags']); }, 'danger', 'flag');
-    endif; ?>
+    <!-- Table 1: Patient profile & vital signs -->
+    <section class="card overflow-hidden">
+        <h3 class="px-4 py-3 border-b border-ink-200 text-sm font-semibold flex items-center gap-2 text-ink-900">
+            <?= icon('user', 'w-4 h-4 text-brand-700') ?>
+            <span><?= h(t('Report.t1')) ?></span>
+        </h3>
+        <div class="overflow-x-auto">
+            <table class="report-table">
+                <thead>
+                    <tr>
+                        <th><?= h(t('Report.col_parameter')) ?></th>
+                        <th><?= h(t('Report.col_value')) ?></th>
+                        <th><?= h(t('Report.col_note')) ?></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($profileRows as [$labelKey, $col]):
+                        $v = $patient[$col] ?? null;
+                        if ($v === null || $v === '') continue;
+                        $display = is_string($v) ? $v : (string) $v;
+                    ?>
+                        <tr>
+                            <td class="font-medium text-ink-700"><?= h(t("Case.patient.$labelKey")) ?></td>
+                            <td class="whitespace-pre-wrap"><?= h($display) ?></td>
+                            <td class="text-ink-500">—</td>
+                        </tr>
+                    <?php endforeach; ?>
+                    <?php if (array_filter($profileRows, fn($r) => !empty($patient[$r[1]])) === []): ?>
+                        <tr><td colspan="3" class="text-ink-500 text-center"><?= h($empty) ?></td></tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+    </section>
 
-    <?php $section(t('Report.s1'), function () use ($report, $empty) {
-        echo '<p class="text-sm leading-relaxed whitespace-pre-wrap text-ink-800">' . h($report['caseSummary'] !== '' ? $report['caseSummary'] : $empty) . '</p>';
-    }, 'default', 'file-text'); ?>
+    <!-- Table 2: Clinical presentation & red flags -->
+    <section class="card overflow-hidden">
+        <h3 class="px-4 py-3 border-b border-ink-200 text-sm font-semibold flex items-center gap-2 text-ink-900">
+            <?= icon('clipboard', 'w-4 h-4 text-brand-700') ?>
+            <span><?= h(t('Report.t2')) ?></span>
+        </h3>
+        <div class="overflow-x-auto">
+            <table class="report-table">
+                <thead>
+                    <tr>
+                        <th><?= h(t('Report.col_category')) ?></th>
+                        <th><?= h(t('Report.col_findings')) ?></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="font-medium text-ink-700"><?= h(t('Report.row_caseSummary')) ?></td>
+                        <td class="whitespace-pre-wrap"><?= h(($report['caseSummary'] ?? '') !== '' ? $report['caseSummary'] : $empty) ?></td>
+                    </tr>
+                    <tr>
+                        <td class="font-medium text-ink-700"><?= h(t('Report.row_physicalExam')) ?></td>
+                        <td><?= $bullets($report['keyFindings'] ?? []) ?></td>
+                    </tr>
+                    <tr>
+                        <td class="font-medium text-red-700">🚨 <?= h(t('Report.row_criticalRedFlags')) ?></td>
+                        <td><?= $bullets($report['redFlags'] ?? []) ?></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
 
-    <?php $section(t('Report.s2'), function () use ($bullets, $report) { $bullets($report['keyFindings'] ?? []); }, 'default', 'check-circle'); ?>
-    <?php $section(t('Report.s3'), function () use ($bullets, $report) { $bullets($report['missingInformation'] ?? []); }, 'default', 'info'); ?>
+    <!-- Table 3: Differential diagnosis matrix -->
+    <section class="card overflow-hidden">
+        <h3 class="px-4 py-3 border-b border-ink-200 text-sm font-semibold flex items-center gap-2 text-ink-900">
+            <?= icon('sparkles', 'w-4 h-4 text-brand-700') ?>
+            <span><?= h(t('Report.t3')) ?></span>
+        </h3>
+        <div class="overflow-x-auto">
+            <table class="report-table">
+                <thead>
+                    <tr>
+                        <th><?= h(t('Report.col_rank')) ?></th>
+                        <th><?= h(t('Report.col_condition')) ?></th>
+                        <th><?= h(t('Report.col_probability')) ?></th>
+                        <th>✓ <?= h(t('Report.supportingEvidence')) ?></th>
+                        <th>✗ <?= h(t('Report.evidenceAgainst')) ?></th>
+                        <th>→ <?= h(t('Report.nextStep')) ?></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php $dx = $report['differentialDiagnosis'] ?? []; ?>
+                    <?php if (!$dx): ?>
+                        <tr><td colspan="6" class="text-ink-500 text-center"><?= h($empty) ?></td></tr>
+                    <?php else: ?>
+                        <?php foreach ($dx as $i => $d):
+                            $like = $d['likelihood'] ?? 'low';
+                            $pill = $pillForLikelihood[$like] ?? '';
+                            $label = $labelForLikelihood[$like] ?? $like;
+                        ?>
+                            <tr>
+                                <td class="font-mono text-ink-600"><?= ($i + 1) ?></td>
+                                <td class="font-medium text-ink-900"><?= h((string) ($d['diagnosis'] ?? '')) ?></td>
+                                <td><span class="pill <?= $pill ?>"><?= h($label) ?></span></td>
+                                <td><?= $bullets($d['supportingEvidence'] ?? []) ?></td>
+                                <td><?= $bullets($d['evidenceAgainst'] ?? []) ?></td>
+                                <td class="whitespace-pre-wrap"><?= h((string) ($d['recommendedNextStep'] ?? $empty)) ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+    </section>
 
-    <?php $section(t('Report.s4'), function () use ($bullets, $report, $empty, $pillForLikelihood, $labelForLikelihood) {
-        $dx = $report['differentialDiagnosis'] ?? [];
-        if (!$dx) { echo '<p class="text-sm text-ink-500">' . h($empty) . '</p>'; return; }
-        echo '<ol class="space-y-3">';
-        foreach ($dx as $i => $d):
-            $like = $d['likelihood'] ?? 'low';
-            $pill = $pillForLikelihood[$like] ?? '';
-            $label = $labelForLikelihood[$like] ?? $like;
-        ?>
-            <li class="border border-ink-200 rounded-lg p-4 bg-white">
-                <div class="flex items-start justify-between gap-2">
-                    <div class="font-semibold text-sm text-ink-900">
-                        <span class="inline-block w-6 h-6 rounded-full bg-brand-50 text-brand-700 text-xs grid place-items-center mr-1.5"><?= ($i + 1) ?></span>
-                        <?= h((string) ($d['diagnosis'] ?? '')) ?>
-                    </div>
-                    <span class="pill <?= $pill ?>"><?= h($label) ?></span>
-                </div>
-                <?php if (!empty($d['supportingEvidence'])): ?>
-                    <div class="mt-3">
-                        <div class="text-[11px] uppercase tracking-wide text-vital-700 font-semibold flex items-center gap-1 mb-1.5">
-                            <?= icon('check', 'w-3 h-3') ?>
-                            <?= h(t('Report.supportingEvidence')) ?>
-                        </div>
-                        <?php $bullets($d['supportingEvidence'], true); ?>
-                    </div>
-                <?php endif; ?>
-                <?php if (!empty($d['evidenceAgainst'])): ?>
-                    <div class="mt-3">
-                        <div class="text-[11px] uppercase tracking-wide text-red-700 font-semibold flex items-center gap-1 mb-1.5">
-                            <?= icon('x', 'w-3 h-3') ?>
-                            <?= h(t('Report.evidenceAgainst')) ?>
-                        </div>
-                        <?php $bullets($d['evidenceAgainst'], true); ?>
-                    </div>
-                <?php endif; ?>
-                <?php if (!empty($d['recommendedNextStep'])): ?>
-                    <div class="mt-3 text-sm bg-brand-50 border border-brand-100 rounded-md p-2.5">
-                        <span class="text-brand-700 text-[11px] uppercase tracking-wide font-semibold inline-flex items-center gap-1 mr-1">
-                            <?= icon('arrow-right', 'w-3 h-3') ?>
-                            <?= h(t('Report.nextStep')) ?>
-                        </span>
-                        <span class="text-ink-800"><?= h($d['recommendedNextStep']) ?></span>
-                    </div>
-                <?php endif; ?>
-            </li>
-        <?php endforeach;
-        echo '</ol>';
-    }, 'default', 'sparkles'); ?>
+    <!-- Table 4: Clinical action plan -->
+    <section class="card overflow-hidden">
+        <h3 class="px-4 py-3 border-b border-ink-200 text-sm font-semibold flex items-center gap-2 text-ink-900">
+            <?= icon('pulse', 'w-4 h-4 text-brand-700') ?>
+            <span><?= h(t('Report.t4')) ?></span>
+        </h3>
+        <div class="overflow-x-auto">
+            <table class="report-table">
+                <thead>
+                    <tr>
+                        <th><?= h(t('Report.col_phase')) ?></th>
+                        <th><?= h(t('Report.col_actions')) ?></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="font-medium text-ink-700"><?= h(t('Report.row_missingInfo')) ?></td>
+                        <td><?= $bullets($report['missingInformation'] ?? []) ?></td>
+                    </tr>
+                    <tr>
+                        <td class="font-medium text-ink-700"><?= h(t('Report.row_workup')) ?></td>
+                        <td><?= $bullets($report['recommendedTests'] ?? []) ?></td>
+                    </tr>
+                    <tr>
+                        <td class="font-medium text-ink-700"><?= h(t('Report.row_therapy')) ?></td>
+                        <td><?= $bullets($report['treatmentConsiderations'] ?? []) ?></td>
+                    </tr>
+                    <tr>
+                        <td class="font-medium text-ink-700"><?= h(t('Report.row_consults')) ?></td>
+                        <td><?= $bullets($report['specialistReferrals'] ?? []) ?></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
 
-    <?php $section(t('Report.s5'), function () use ($bullets, $report) { $bullets($report['redFlags'] ?? []); }, 'default', 'flag'); ?>
-    <?php $section(t('Report.s6'), function () use ($bullets, $report) { $bullets($report['recommendedTests'] ?? []); }, 'default', 'flask'); ?>
-    <?php $section(t('Report.s7'), function () use ($bullets, $report) { $bullets($report['treatmentConsiderations'] ?? []); }, 'default', 'pulse'); ?>
-    <?php $section(t('Report.s8'), function () use ($bullets, $report) { $bullets($report['specialistReferrals'] ?? []); }, 'default', 'users'); ?>
+    <!-- Final recommendation -->
+    <section class="card border-brand-200 bg-brand-50 p-4">
+        <h3 class="text-sm font-semibold mb-2 flex items-center gap-2 text-brand-900">
+            <?= icon('check-circle', 'w-4 h-4 text-brand-700') ?>
+            <span><?= h(t('Report.s10')) ?></span>
+        </h3>
+        <p class="text-sm leading-relaxed whitespace-pre-wrap text-ink-800"><?= h(($report['finalRecommendation'] ?? '') !== '' ? $report['finalRecommendation'] : $empty) ?></p>
+        <?php $u = $report['uncertainty'] ?? 'high'; ?>
+        <div class="mt-3 inline-flex items-center gap-2 text-xs text-ink-600 bg-white border border-ink-200 rounded-md px-2.5 py-1">
+            <?= icon('info', 'w-3.5 h-3.5 text-ink-500') ?>
+            <span><?= h(t('Report.uncertainty')) ?></span>
+            <span class="font-semibold text-ink-900"><?= h($labelForLikelihood[$u] ?? $u) ?></span>
+        </div>
+    </section>
 
-    <?php $section(t('Report.s9'), function () use ($report, $empty) {
-        echo '<p class="text-sm leading-relaxed whitespace-pre-wrap text-ink-800">' . h(($report['evidenceSummary'] ?? '') !== '' ? $report['evidenceSummary'] : $empty) . '</p>';
-        if (!empty($report['citations'])):
-            echo '<ol class="mt-3 space-y-1.5 text-sm">';
-            foreach ($report['citations'] as $c) {
-                echo '<li class="flex items-start gap-2"><span class="text-ink-400 mt-0.5">' . icon('paperclip', 'w-3.5 h-3.5') . '</span><span><span class="font-medium text-ink-900">' . h($c['title']) . '</span>';
-                if (!empty($c['source'])) echo '<span class="text-ink-500"> — ' . h($c['source']) . '</span>';
-                if (!empty($c['url'])) echo ' <a href="' . h($c['url']) . '" target="_blank" rel="noreferrer" class="text-brand-700 hover:underline font-medium">' . h(t('Report.link')) . '</a>';
-                echo '</span></li>';
-            }
-            echo '</ol>';
-        endif;
-    }, 'default', 'search'); ?>
+    <!-- Evidence summary + citations -->
+    <?php if (($report['evidenceSummary'] ?? '') !== '' || !empty($report['citations'])): ?>
+        <section class="card p-4">
+            <h3 class="text-sm font-semibold mb-2 flex items-center gap-2 text-ink-900">
+                <?= icon('search', 'w-4 h-4 text-brand-700') ?>
+                <span><?= h(t('Report.s9')) ?></span>
+            </h3>
+            <?php if (($report['evidenceSummary'] ?? '') !== ''): ?>
+                <p class="text-sm leading-relaxed whitespace-pre-wrap text-ink-800"><?= h($report['evidenceSummary']) ?></p>
+            <?php endif; ?>
+            <?php if (!empty($report['citations'])): ?>
+                <ol class="mt-3 space-y-1.5 text-sm">
+                    <?php foreach ($report['citations'] as $c): ?>
+                        <li class="flex items-start gap-2">
+                            <span class="text-ink-400 mt-0.5"><?= icon('paperclip', 'w-3.5 h-3.5') ?></span>
+                            <span>
+                                <span class="font-medium text-ink-900"><?= h($c['title']) ?></span>
+                                <?php if (!empty($c['source'])): ?><span class="text-ink-500"> — <?= h($c['source']) ?></span><?php endif; ?>
+                                <?php if (!empty($c['url'])): ?> <a href="<?= h($c['url']) ?>" target="_blank" rel="noreferrer" class="text-brand-700 hover:underline font-medium"><?= h(t('Report.link')) ?></a><?php endif; ?>
+                            </span>
+                        </li>
+                    <?php endforeach; ?>
+                </ol>
+            <?php endif; ?>
+        </section>
+    <?php endif; ?>
 
-    <?php $section(t('Report.s10'), function () use ($report, $empty, $labelForLikelihood) {
-        echo '<p class="text-sm leading-relaxed whitespace-pre-wrap text-ink-800">' . h(($report['finalRecommendation'] ?? '') !== '' ? $report['finalRecommendation'] : $empty) . '</p>';
-        $u = $report['uncertainty'] ?? 'high';
-        echo '<div class="mt-3 inline-flex items-center gap-2 text-xs text-ink-600 bg-ink-50 border border-ink-200 rounded-md px-2.5 py-1">' . icon('info', 'w-3.5 h-3.5 text-ink-500') . '<span>' . h(t('Report.uncertainty')) . '</span><span class="font-semibold text-ink-900">' . h($labelForLikelihood[$u] ?? $u) . '</span></div>';
-    }, 'info', 'check-circle'); ?>
-
-    <?php $section(t('Report.s11'), function () use ($report) {
-        echo '<p class="text-xs leading-relaxed text-ink-700">' . h($report['safetyDisclaimer'] ?? '') . '</p>';
-        if (!empty($report['generatedAt'])) {
+    <!-- Disclaimer / metadata -->
+    <section class="card border-ink-200 bg-ink-50 p-4">
+        <h3 class="text-sm font-semibold mb-2 flex items-center gap-2 text-ink-700">
+            <?= icon('shield', 'w-4 h-4 text-ink-500') ?>
+            <span><?= h(t('Report.s11')) ?></span>
+        </h3>
+        <p class="text-xs leading-relaxed text-ink-700"><?= h($report['safetyDisclaimer'] ?? '') ?></p>
+        <?php if (!empty($report['generatedAt'])):
             $when = (new DateTime($report['generatedAt']))->format('Y-m-d H:i');
             $model = !empty($report['model']) ? ' · ' . $report['model'] : '';
-            echo '<p class="text-[11px] text-ink-500 mt-2 flex items-center gap-1">' . icon('clock', 'w-3 h-3') . '<span>' . h(t('Report.generated', ['when' => $when])) . h($model) . '</span></p>';
-        }
-    }, 'muted', 'shield'); ?>
+        ?>
+            <p class="text-[11px] text-ink-500 mt-2 flex items-center gap-1">
+                <?= icon('clock', 'w-3 h-3') ?>
+                <span><?= h(t('Report.generated', ['when' => $when])) . h($model) ?></span>
+            </p>
+        <?php endif; ?>
+    </section>
 </div>
+
+<style>
+.report-view .report-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+.report-view .report-table th, .report-view .report-table td { border: 1px solid #e2e8f0; padding: 0.5rem 0.75rem; text-align: left; vertical-align: top; }
+.report-view .report-table thead th { background: #f8fafc; font-weight: 600; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; color: #64748b; }
+.report-view .report-table tbody tr:hover { background: #fafafa; }
+.report-view .report-table ul { margin: 0; }
+.report-view .report-table li { margin: 0.1em 0; }
+</style>

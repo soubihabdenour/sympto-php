@@ -225,6 +225,19 @@ function chat_with_agent(array $opts): string {
         return demo_chat_reply(localized_specialty($spec, $locale) ?? $spec, $opts['doctor_message'], $locale);
     }
 
+    $enableResearch = $opts['enable_research'] ?? true;
+    $research = $enableResearch
+        ? search_medical_sources([
+            'specialty' => $spec['specialty'],
+            'query' => trim((string) ($opts['doctor_message'] ?? ''))
+                ?: ($opts['ctx']['clinical_question'] ?? '')
+                ?: ($opts['ctx']['initial_diagnosis'] ?? '')
+                ?: ($opts['ctx']['symptoms'] ?? '')
+                ?: $spec['specialty'],
+            'max_results' => 5,
+        ])
+        : [];
+
     $system = build_specialist_system_prompt($spec, $locale);
     $prior = [];
     foreach ($opts['history'] ?? [] as $turn) {
@@ -234,7 +247,7 @@ function chat_with_agent(array $opts): string {
     $grounded = build_case_user_message([
         'ctx' => $opts['ctx'],
         'docs' => $opts['docs'],
-        'research' => [],
+        'research' => $research,
         'task' => 'chat',
         'doctor_message' => $opts['doctor_message'],
         'safety_disclaimer' => get_safety_disclaimer($locale),
