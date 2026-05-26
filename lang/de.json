@@ -207,6 +207,7 @@
     "agentLabel": "Agent",
     "agentChange": "ändern",
     "generateReport": "Vollständigen Bericht erstellen",
+    "adminReadOnly": "Admin-Ansicht — dieser Fall gehört einem anderen Arzt. Schreibgeschützt.",
     "sparseData": "Die Patientendaten sind lückenhaft ({percent}% der üblichen Felder ausgefüllt). Der Agent wird wahrscheinlich Rückfragen stellen, bevor er einen belastbaren Differenzialvorschlag liefert.",
     "changeAgentTitle": "Fachagenten ändern",
     "tabs": {

@@ -3,6 +3,7 @@ require_once TEMPLATES_DIR . '/components/icons.php';
 $title = $case['title'] . ' — ' . t('Case.tabs.patient');
 $spec = localized_specialty($case['specialty_id']);
 $cid = (int) $case['id'];
+$is_owner = $is_owner ?? true;
 
 // Completeness
 $score = 0;
@@ -43,7 +44,7 @@ ob_start();
 
     <div class="flex flex-wrap items-start justify-between gap-3">
         <div class="min-w-0">
-            <a href="/dashboard" class="inline-flex items-center gap-1 text-xs text-ink-500 hover:text-ink-800 transition-colors">
+            <a href="<?= $is_owner ? '/dashboard' : '/admin/doctors/' . (int) $case['doctor_id'] ?>" class="inline-flex items-center gap-1 text-xs text-ink-500 hover:text-ink-800 transition-colors">
                 <?= icon('arrow-left', 'w-3.5 h-3.5') ?>
                 <?= h(t('Case.back')) ?>
             </a>
@@ -65,15 +66,26 @@ ob_start();
                     <?= icon($spec['icon'] ?? 'stethoscope', 'w-4 h-4') ?>
                 </span>
                 <span class="font-medium text-ink-800 truncate"><?= h($spec['name'] ?? t('Case.agentLabel')) ?></span>
-                <button type="button" @click="changingAgent = true" class="text-xs text-brand-700 hover:underline ml-auto shrink-0"><?= h(t('Case.agentChange')) ?></button>
+                <?php if ($is_owner): ?>
+                    <button type="button" @click="changingAgent = true" class="text-xs text-brand-700 hover:underline ml-auto shrink-0"><?= h(t('Case.agentChange')) ?></button>
+                <?php endif; ?>
             </div>
-            <button type="button" @click="generateReport()" :disabled="busy === 'report'" class="btn-primary w-full sm:w-auto">
-                <?= icon('sparkles', 'w-4 h-4') ?>
-                <span x-show="busy !== 'report'"><?= h(t('Case.generateReport')) ?></span>
-                <span x-show="busy === 'report'"><?= h(t('Common.generating')) ?></span>
-            </button>
+            <?php if ($is_owner): ?>
+                <button type="button" @click="generateReport()" :disabled="busy === 'report'" class="btn-primary w-full sm:w-auto">
+                    <?= icon('sparkles', 'w-4 h-4') ?>
+                    <span x-show="busy !== 'report'"><?= h(t('Case.generateReport')) ?></span>
+                    <span x-show="busy === 'report'"><?= h(t('Common.generating')) ?></span>
+                </button>
+            <?php endif; ?>
         </div>
     </div>
+
+    <?php if (!$is_owner): ?>
+        <div class="card border-brand-200 bg-brand-50 p-3 text-sm text-brand-900 flex items-start gap-2">
+            <?= icon('shield', 'w-4 h-4 mt-0.5 shrink-0') ?>
+            <span><?= h(t('Case.adminReadOnly')) ?></span>
+        </div>
+    <?php endif; ?>
 
     <template x-if="error">
         <div class="card border-red-200 bg-red-50 p-3 text-sm text-red-700 flex items-start gap-2">
@@ -149,7 +161,7 @@ ob_start();
                 <?= icon('user', 'w-5 h-5 text-brand-700') ?>
                 <h2 class="section-title">Patient details</h2>
             </div>
-            <div class="grid sm:grid-cols-2 gap-4">
+            <fieldset <?= $is_owner ? '' : 'disabled' ?> class="grid sm:grid-cols-2 gap-4">
                 <div>
                     <label class="label"><?= h(t('Case.patient.ageYears')) ?></label>
                     <input type="number" min="0" name="age_years" value="<?= h((string) ($patient['age_years'] ?? '')) ?>" class="input">
@@ -190,13 +202,15 @@ ob_start();
                     <?php endif; ?>
                 </div>
                 <?php endforeach; ?>
-            </div>
-            <div class="mt-5 flex justify-end">
-                <button type="submit" class="btn-primary">
-                    <?= icon('check', 'w-4 h-4') ?>
-                    <?= h(t('Case.patient.save')) ?>
-                </button>
-            </div>
+            </fieldset>
+            <?php if ($is_owner): ?>
+                <div class="mt-5 flex justify-end">
+                    <button type="submit" class="btn-primary">
+                        <?= icon('check', 'w-4 h-4') ?>
+                        <?= h(t('Case.patient.save')) ?>
+                    </button>
+                </div>
+            <?php endif; ?>
         </form>
         <div class="space-y-3">
             <div class="card p-5">
@@ -254,27 +268,29 @@ ob_start();
     </div>
 
     <!-- Documents panel -->
-    <div x-show="tab === 'documents'" class="grid lg:grid-cols-3 gap-4">
-        <form method="post" action="/cases/<?= $cid ?>/documents" enctype="multipart/form-data" class="lg:col-span-1">
-            <?= csrf_field() ?>
-            <div class="card p-5 text-center">
-                <div class="w-12 h-12 mx-auto rounded-xl bg-brand-50 text-brand-700 grid place-items-center">
-                    <?= icon('upload', 'w-6 h-6') ?>
+    <div x-show="tab === 'documents'" class="grid <?= $is_owner ? 'lg:grid-cols-3' : 'lg:grid-cols-1' ?> gap-4">
+        <?php if ($is_owner): ?>
+            <form method="post" action="/cases/<?= $cid ?>/documents" enctype="multipart/form-data" class="lg:col-span-1">
+                <?= csrf_field() ?>
+                <div class="card p-5 text-center">
+                    <div class="w-12 h-12 mx-auto rounded-xl bg-brand-50 text-brand-700 grid place-items-center">
+                        <?= icon('upload', 'w-6 h-6') ?>
+                    </div>
+                    <div class="text-sm font-semibold mt-3 text-ink-900"><?= h(t('Case.documents.upload')) ?></div>
+                    <div class="text-xs text-ink-500 mt-1"><?= h(t('Case.documents.uploadHint')) ?></div>
+                    <input type="file" name="file[]" multiple class="mt-4 mx-auto text-xs file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:bg-ink-100 file:text-ink-700 file:font-medium hover:file:bg-ink-200 cursor-pointer" accept=".pdf,.docx,.txt,image/*">
+                    <button type="submit" class="btn-primary mt-4 w-full">
+                        <?= icon('upload', 'w-4 h-4') ?>
+                        <?= h(t('Case.documents.upload')) ?>
+                    </button>
                 </div>
-                <div class="text-sm font-semibold mt-3 text-ink-900"><?= h(t('Case.documents.upload')) ?></div>
-                <div class="text-xs text-ink-500 mt-1"><?= h(t('Case.documents.uploadHint')) ?></div>
-                <input type="file" name="file[]" multiple class="mt-4 mx-auto text-xs file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:bg-ink-100 file:text-ink-700 file:font-medium hover:file:bg-ink-200 cursor-pointer" accept=".pdf,.docx,.txt,image/*">
-                <button type="submit" class="btn-primary mt-4 w-full">
-                    <?= icon('upload', 'w-4 h-4') ?>
-                    <?= h(t('Case.documents.upload')) ?>
-                </button>
-            </div>
-            <div class="card p-3 mt-3 text-xs text-ink-600 flex items-start gap-2">
-                <?= icon('info', 'w-4 h-4 mt-0.5 shrink-0 text-ink-400') ?>
-                <span><?= h(t('Case.documents.tip')) ?></span>
-            </div>
-        </form>
-        <div class="lg:col-span-2 space-y-3">
+                <div class="card p-3 mt-3 text-xs text-ink-600 flex items-start gap-2">
+                    <?= icon('info', 'w-4 h-4 mt-0.5 shrink-0 text-ink-400') ?>
+                    <span><?= h(t('Case.documents.tip')) ?></span>
+                </div>
+            </form>
+        <?php endif; ?>
+        <div class="<?= $is_owner ? 'lg:col-span-2' : '' ?> space-y-3">
             <?php if (!$documents): ?>
                 <div class="card p-10 text-sm text-ink-500 text-center">
                     <div class="w-12 h-12 mx-auto rounded-xl bg-ink-100 text-ink-400 grid place-items-center">
@@ -298,13 +314,15 @@ ob_start();
                                     </div>
                                 </div>
                             </div>
-                            <form method="post" action="/cases/<?= $cid ?>/documents/<?= (int) $d['id'] ?>/delete"
-                                  onsubmit="return confirm(<?= json_encode(t('Case.documents.deleteConfirm')) ?>);">
-                                <?= csrf_field() ?>
-                                <button type="submit" class="btn-danger-ghost" title="<?= h(t('Case.documents.deleteTitle')) ?>">
-                                    <?= icon('trash', 'w-4 h-4') ?>
-                                </button>
-                            </form>
+                            <?php if ($is_owner): ?>
+                                <form method="post" action="/cases/<?= $cid ?>/documents/<?= (int) $d['id'] ?>/delete"
+                                      onsubmit="return confirm(<?= json_encode(t('Case.documents.deleteConfirm')) ?>);">
+                                    <?= csrf_field() ?>
+                                    <button type="submit" class="btn-danger-ghost" title="<?= h(t('Case.documents.deleteTitle')) ?>">
+                                        <?= icon('trash', 'w-4 h-4') ?>
+                                    </button>
+                                </form>
+                            <?php endif; ?>
                         </div>
                         <div class="mt-3 text-xs text-ink-700 leading-relaxed bg-ink-50 border border-ink-100 rounded-lg p-3 max-h-44 overflow-y-auto whitespace-pre-wrap font-mono">
                             <?= h(($d['extracted_text'] ?? '') !== '' ? $d['extracted_text'] : t('Case.documents.noText')) ?>
@@ -360,14 +378,16 @@ ob_start();
                 <?= h(t('Case.chat.thinking', ['name' => $spec['name'] ?? ''])) ?>
             </div>
         </div>
-        <form @submit.prevent="sendMessage()" class="border-t border-ink-200 p-3 flex gap-2 bg-white">
-            <input x-model="chatDraft" :disabled="busy === 'chat'"
-                   class="input flex-1" placeholder="<?= h(t('Case.chat.placeholder')) ?>">
-            <button type="submit" class="btn-primary" :disabled="busy === 'chat'">
-                <?= icon('send', 'w-4 h-4') ?>
-                <span class="hidden sm:inline"><?= h(t('Case.chat.send')) ?></span>
-            </button>
-        </form>
+        <?php if ($is_owner): ?>
+            <form @submit.prevent="sendMessage()" class="border-t border-ink-200 p-3 flex gap-2 bg-white">
+                <input x-model="chatDraft" :disabled="busy === 'chat'"
+                       class="input flex-1" placeholder="<?= h(t('Case.chat.placeholder')) ?>">
+                <button type="submit" class="btn-primary" :disabled="busy === 'chat'">
+                    <?= icon('send', 'w-4 h-4') ?>
+                    <span class="hidden sm:inline"><?= h(t('Case.chat.send')) ?></span>
+                </button>
+            </form>
+        <?php endif; ?>
     </div>
 
     <!-- Report panel -->
@@ -375,10 +395,12 @@ ob_start();
         <template x-if="reportData">
             <div class="space-y-4">
                 <div class="flex flex-wrap items-center justify-end gap-2">
-                    <button type="button" @click="generateReport()" class="btn-secondary" :disabled="busy === 'report'">
-                        <?= icon('refresh', 'w-4 h-4') ?>
-                        <?= h(t('Case.report.regenerate')) ?>
-                    </button>
+                    <?php if ($is_owner): ?>
+                        <button type="button" @click="generateReport()" class="btn-secondary" :disabled="busy === 'report'">
+                            <?= icon('refresh', 'w-4 h-4') ?>
+                            <?= h(t('Case.report.regenerate')) ?>
+                        </button>
+                    <?php endif; ?>
                     <button type="button" onclick="window.print()" class="btn-primary">
                         <?= icon('printer', 'w-4 h-4') ?>
                         <?= h(t('Case.report.export')) ?>
@@ -394,10 +416,12 @@ ob_start();
                 </div>
                 <h2 class="font-semibold text-lg mt-4 text-ink-900"><?= h(t('Case.report.noTitle')) ?></h2>
                 <p class="text-sm text-ink-500 mt-1 max-w-md mx-auto"><?= h(t('Case.report.noBody')) ?></p>
-                <button type="button" @click="generateReport()" class="btn-primary mt-5" :disabled="busy === 'report'">
-                    <?= icon('sparkles', 'w-4 h-4') ?>
-                    <?= h(t('Case.report.generate')) ?>
-                </button>
+                <?php if ($is_owner): ?>
+                    <button type="button" @click="generateReport()" class="btn-primary mt-5" :disabled="busy === 'report'">
+                        <?= icon('sparkles', 'w-4 h-4') ?>
+                        <?= h(t('Case.report.generate')) ?>
+                    </button>
+                <?php endif; ?>
             </div>
         </template>
         <?php if ($latestReport): ?>

@@ -65,6 +65,9 @@ function icon(string $name, string $class = 'w-5 h-5'): string {
         'flower'         => '<circle cx="12" cy="12" r="2.5"/><path d="M12 9.5V5a2.5 2.5 0 1 1 5 0c0 1.4-1 2.5-2 3M12 14.5V19a2.5 2.5 0 1 0 5 0c0-1.4-1-2.5-2-3M9.5 12H5a2.5 2.5 0 1 0 0 5c1.4 0 2.5-1 3-2M14.5 12H19a2.5 2.5 0 1 1 0-5c-1.4 0-2.5 1-3 2"/>',
         // Logo composite (medical cross + pulse)
         'medical-cross'  => '<rect x="4" y="9" width="16" height="6" rx="1.5"/><rect x="9" y="4" width="6" height="16" rx="1.5"/>',
+        // Brand mark: pulse line ending in an AI sparkle. Drawn in currentColor;
+        // sits inside the gradient .brand-logo tile.
+        'medagent-mark'  => '<path d="M3 13 H7 L9 8 L12 18 L14 10 L15 13 H16.5"/><path d="M17 13 H23 M20 10 V16"/>',
     ];
     $p = $paths[$name] ?? $paths['info'];
     return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="' . htmlspecialchars($class, ENT_QUOTES, 'UTF-8') . '" aria-hidden="true">' . $p . '</svg>';

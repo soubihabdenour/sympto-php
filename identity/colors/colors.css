@@ -1,0 +1,86 @@
+/* MedAgent AI — Color tokens (CSS custom properties)
+   Drop into your global stylesheet or :root. Mirrors colors.json. */
+
+:root {
+  /* Brand · Teal */
+  --color-brand-50:  #ECFEFF;
+  --color-brand-100: #CFFAFE;
+  --color-brand-200: #A5F3FC;
+  --color-brand-300: #67E8F9;
+  --color-brand-400: #22D3EE;
+  --color-brand-500: #06B6D4;
+  --color-brand-600: #0891B2;
+  --color-brand-700: #0E7490; /* PRIMARY */
+  --color-brand-800: #155E75;
+  --color-brand-900: #164E63;
+
+  /* Ink · Neutrals */
+  --color-ink-50:  #F8FAFC;
+  --color-ink-100: #F1F5F9;
+  --color-ink-200: #E2E8F0;
+  --color-ink-300: #CBD5E1;
+  --color-ink-400: #94A3B8;
+  --color-ink-500: #64748B;
+  --color-ink-600: #475569;
+  --color-ink-700: #334155;
+  --color-ink-800: #1E293B;
+  --color-ink-900: #0F172A;
+
+  /* Status */
+  --color-vital-50:  #ECFDF5;
+  --color-vital-500: #10B981;
+  --color-vital-700: #047857;
+
+  --color-warn-50:  #FFFBEB;
+  --color-warn-500: #F59E0B;
+  --color-warn-700: #B45309;
+
+  --color-danger-50:  #FEF2F2;
+  --color-danger-500: #EF4444;
+  --color-danger-700: #B91C1C;
+
+  /* Semantic */
+  --bg:              #FFFFFF;
+  --bg-muted:        #F8FAFC;
+  --surface:         #FFFFFF;
+  --border:          #E2E8F0;
+  --border-strong:   #CBD5E1;
+  --text:            #0F172A;
+  --text-muted:      #64748B;
+  --text-inverse:    #FFFFFF;
+  --primary:         #0E7490;
+  --primary-hover:   #155E75;
+  --focus-ring:      rgba(6, 182, 212, 0.20);
+
+  /* Signatures */
+  --gradient-brand:   linear-gradient(135deg, #0891B2 0%, #0E7490 55%, #155E75 100%);
+  --gradient-canvas:  linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%);
+  --gradient-ambient:
+    radial-gradient(ellipse 800px 600px at 10% -10%, rgba(14,116,144,0.08), transparent 60%),
+    radial-gradient(ellipse 800px 600px at 110% 10%, rgba(6,182,212,0.06), transparent 60%);
+
+  /* Elevation */
+  --shadow-card: 0 1px 2px 0 rgb(15 23 42 / 0.04), 0 1px 3px 0 rgb(15 23 42 / 0.06);
+  --shadow-lift: 0 4px 12px -2px rgb(15 23 42 / 0.08), 0 2px 4px -2px rgb(15 23 42 / 0.06);
+
+  /* Radii */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --radius-tile: 20px; /* the brand tile */
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg:            #0F172A;
+    --bg-muted:      #0B1220;
+    --surface:       #1E293B;
+    --border:        #334155;
+    --border-strong: #475569;
+    --text:          #F8FAFC;
+    --text-muted:    #94A3B8;
+    --primary:       #22D3EE; /* lighter for contrast on dark */
+    --primary-hover: #67E8F9;
+  }
+}

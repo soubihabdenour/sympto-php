@@ -10,6 +10,8 @@ $title ??= 'MedAgent AI';
 <meta name="csrf-token" content="<?= h(csrf_token()) ?>">
 <meta name="theme-color" content="#0e7490">
 <title><?= h($title) ?></title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="apple-touch-icon" href="/app-icon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -73,7 +75,7 @@ $title ??= 'MedAgent AI';
       </button>
       <a href="/dashboard" class="flex items-center gap-2 min-w-0">
         <span class="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-600 to-brand-800 text-white grid place-items-center shadow-sm shrink-0">
-          <?= icon('stethoscope', 'w-4 h-4') ?>
+          <?= icon('medagent-mark', 'w-5 h-5') ?>
         </span>
         <span class="font-bold text-ink-900 truncate text-[15px]"><?= h(t('Nav.appName')) ?></span>
       </a>

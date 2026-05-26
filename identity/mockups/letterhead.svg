@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 794 1123" font-family="Inter, system-ui, sans-serif">
+  <title>MedAgent AI — Letterhead (A4 portrait, 794×1123 @ 96dpi)</title>
+  <defs>
+    <linearGradient id="lhTile" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0891b2"/>
+      <stop offset="55%" stop-color="#0e7490"/>
+      <stop offset="100%" stop-color="#155e75"/>
+    </linearGradient>
+    <linearGradient id="lhSheen" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.18"/>
+      <stop offset="60%" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="lhShadow" x="-2%" y="-2%" width="104%" height="104%">
+      <feDropShadow dx="0" dy="6" stdDeviation="10" flood-color="#0f172a" flood-opacity="0.10"/>
+    </filter>
+  </defs>
+
+  <!-- Page background (gray) -->
+  <rect width="794" height="1123" fill="#eef2f6"/>
+  <!-- Sheet -->
+  <g filter="url(#lhShadow)">
+    <rect x="40" y="40" width="714" height="1043" fill="#ffffff"/>
+  </g>
+
+  <!-- Header band -->
+  <rect x="40" y="40" width="714" height="6" fill="url(#lhTile)"/>
+
+  <!-- Logo block -->
+  <g transform="translate(80 88)">
+    <g transform="scale(0.6)">
+      <rect width="80" height="80" rx="20" fill="url(#lhTile)"/>
+      <rect width="80" height="80" rx="20" fill="url(#lhSheen)"/>
+      <g fill="none" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M14 44 H26 L30 30 L38 58 L44 36 L48 44 H54"/>
+        <path d="M62 44 L68 44 M62 44 L56 44 M62 44 L62 38 M62 44 L62 50"/>
+      </g>
+    </g>
+    <text x="60" y="22" font-size="22" font-weight="700" fill="#0f172a" letter-spacing="-0.4">MedAgent<tspan fill="#0e7490">·AI</tspan></text>
+    <text x="60" y="40" font-size="10" font-weight="600" fill="#64748b" letter-spacing="2.4">CLINICAL  INTELLIGENCE</text>
+  </g>
+
+  <!-- Right-aligned contact -->
+  <g text-anchor="end">
+    <text x="714" y="108" font-size="11" font-weight="600" fill="#0f172a">MedAgent AI · Decision Support Systems</text>
+    <text x="714" y="124" font-size="10" fill="#475569">12 rue de la Paix · 75002 Paris · France</text>
+    <text x="714" y="138" font-size="10" fill="#475569">hello@medagent.ai · +33 1 42 00 00 00</text>
+  </g>
+
+  <!-- Letter body -->
+  <g transform="translate(80 220)" fill="#334155" font-size="11">
+    <text y="0" font-weight="600" fill="#0f172a">Paris, 26 May 2026</text>
+
+    <text y="44">Dr. Aïssata Diallo</text>
+    <text y="60">CHU de Bordeaux</text>
+    <text y="76">Service de cardiologie</text>
+
+    <text y="120" font-weight="600" fill="#0f172a">Re: Pilot integration of MedAgent AI in the cardiology unit</text>
+
+    <text y="156">Dear Dr. Diallo,</text>
+
+    <text y="190">Thank you for your interest in piloting MedAgent AI within your cardiology service.</text>
+    <text y="210">This letter sets out the scope of the pilot, the data-handling commitments we make,</text>
+    <text y="230">and the support resources available to your clinicians for the first ninety days.</text>
+
+    <text y="268">MedAgent AI is a decision-support tool intended for licensed medical professionals.</text>
+    <text y="288">All outputs are advisory; the treating clinician remains fully responsible for the</text>
+    <text y="308">final clinical decision. Patient data processed during the pilot is encrypted at rest</text>
+    <text y="328">and never used for model training without explicit, written consent.</text>
+
+    <text y="368">A separate appendix details the eleven-section report format, the fifteen specialist</text>
+    <text y="388">agents available, and the audit log structure your compliance team can subscribe to.</text>
+
+    <text y="430">With my warmest regards,</text>
+
+    <text y="486" font-weight="700" fill="#0f172a" font-size="13">Camille Renault, MD PhD</text>
+    <text y="502">Clinical Director · MedAgent AI</text>
+  </g>
+
+  <!-- Footer -->
+  <line x1="80" y1="1020" x2="714" y2="1020" stroke="#e2e8f0"/>
+  <g font-size="9" fill="#64748b">
+    <text x="80" y="1042">medagent.ai</text>
+    <text x="397" y="1042" text-anchor="middle">Decision support · Not a diagnostic device</text>
+    <text x="714" y="1042" text-anchor="end">Page 1 of 1</text>
+  </g>
+</svg>

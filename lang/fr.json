@@ -207,6 +207,7 @@
     "agentLabel": "Agent",
     "agentChange": "changer",
     "generateReport": "Générer le rapport complet",
+    "adminReadOnly": "Vue admin — ce dossier appartient à un autre médecin. Lecture seule.",
     "sparseData": "Les données patient sont incomplètes ({percent}% des champs courants renseignés). L'agent posera probablement des questions de suivi avant de produire un différentiel fiable.",
     "changeAgentTitle": "Changer d'agent spécialiste",
     "tabs": {

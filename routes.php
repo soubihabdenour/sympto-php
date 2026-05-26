@@ -124,8 +124,9 @@ route('POST', '/cases', function () {
 route('GET', '/cases/{id}', function (string $id) {
     $d = require_doctor();
     $cid = (int) $id;
-    $c = ensure_case_access($cid, (int) $d['id']);
+    $c = ensure_case_access($cid, (int) $d['id'], writable: false);
     if (!$c) not_found();
+    $is_owner = (int) $c['doctor_id'] === (int) $d['id'];
     $patient = db_fetch('SELECT * FROM patient_data WHERE case_id = ?', [$cid]) ?? [];
     $docs = db_all(
         'SELECT m.*, e.text AS extracted_text FROM medical_documents m
@@ -142,6 +143,7 @@ route('GET', '/cases/{id}', function (string $id) {
         'documents' => $docs,
         'messages' => $messages,
         'reports' => $reports,
+        'is_owner' => $is_owner,
     ]);
 });
 

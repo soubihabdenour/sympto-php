@@ -10,6 +10,17 @@ $title ??= 'MedAgent AI';
 <meta name="csrf-token" content="<?= h(csrf_token()) ?>">
 <meta name="theme-color" content="#0e7490">
 <title><?= h($title) ?></title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="apple-touch-icon" href="/app-icon.svg">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="MedAgent AI">
+<meta property="og:title" content="<?= h($title) ?>">
+<meta property="og:description" content="Differential diagnosis, drafted in seconds. Decision support for licensed clinicians.">
+<meta property="og:image" content="/og.svg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="<?= h($title) ?>">
+<meta name="twitter:description" content="Differential diagnosis, drafted in seconds. Decision support for licensed clinicians.">
+<meta name="twitter:image" content="/og.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">

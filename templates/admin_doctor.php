@@ -204,21 +204,23 @@ ob_start();
                     <?php foreach ($cases as $c):
                         $spec = localized_specialty($c['specialty_id']);
                     ?>
-                        <li class="px-4 py-3 flex items-start justify-between gap-3">
-                            <div class="min-w-0">
-                                <div class="flex items-center gap-1.5 text-[11px] text-ink-500">
-                                    <?= icon($spec['icon'] ?? 'stethoscope', 'w-3.5 h-3.5') ?>
-                                    <span class="truncate"><?= h($spec['specialty'] ?? $c['specialty_id']) ?></span>
+                        <li>
+                            <a href="/cases/<?= (int) $c['id'] ?>" class="px-4 py-3 flex items-start justify-between gap-3 hover:bg-ink-50 transition-colors">
+                                <div class="min-w-0">
+                                    <div class="flex items-center gap-1.5 text-[11px] text-ink-500">
+                                        <?= icon($spec['icon'] ?? 'stethoscope', 'w-3.5 h-3.5') ?>
+                                        <span class="truncate"><?= h($spec['specialty'] ?? $c['specialty_id']) ?></span>
+                                    </div>
+                                    <div class="font-semibold text-ink-900 mt-0.5 truncate"><?= h($c['title']) ?></div>
+                                    <div class="text-[11px] text-ink-500 mt-1 flex flex-wrap gap-x-3 gap-y-1">
+                                        <span><?= h(t('Dashboard.docsCount', ['count' => (int) $c['docs_count']])) ?></span>
+                                        <span><?= h(t('Dashboard.msgsCount', ['count' => (int) $c['msgs_count']])) ?></span>
+                                        <span><?= h(t('Dashboard.reportsCount', ['count' => (int) $c['reports_count']])) ?></span>
+                                        <span><?= h((new DateTime($c['updated_at']))->format('Y-m-d H:i')) ?></span>
+                                    </div>
                                 </div>
-                                <div class="font-semibold text-ink-900 mt-0.5 truncate"><?= h($c['title']) ?></div>
-                                <div class="text-[11px] text-ink-500 mt-1 flex flex-wrap gap-x-3 gap-y-1">
-                                    <span><?= h(t('Dashboard.docsCount', ['count' => (int) $c['docs_count']])) ?></span>
-                                    <span><?= h(t('Dashboard.msgsCount', ['count' => (int) $c['msgs_count']])) ?></span>
-                                    <span><?= h(t('Dashboard.reportsCount', ['count' => (int) $c['reports_count']])) ?></span>
-                                    <span><?= h((new DateTime($c['updated_at']))->format('Y-m-d H:i')) ?></span>
-                                </div>
-                            </div>
-                            <span class="pill bg-ink-100 text-ink-700 shrink-0"><?= h($statusLabels[$c['status']] ?? $c['status']) ?></span>
+                                <span class="pill bg-ink-100 text-ink-700 shrink-0"><?= h($statusLabels[$c['status']] ?? $c['status']) ?></span>
+                            </a>
                         </li>
                     <?php endforeach; ?>
                 </ul>

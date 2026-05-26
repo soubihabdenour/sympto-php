@@ -8,7 +8,7 @@ ob_start();
     <div class="w-full max-w-md">
         <a href="/" class="flex items-center justify-center gap-3 mb-7">
             <span class="brand-logo">
-                <?= icon('stethoscope', 'w-5 h-5') ?>
+                <?= icon('medagent-mark', 'w-6 h-6') ?>
             </span>
             <span>
                 <span class="block font-bold text-ink-900 leading-tight"><?= h(t('Nav.appName')) ?></span>

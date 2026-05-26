@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="MedAgent AI app icon">
+  <title>MedAgent AI — App icon (iOS/Android squircle, 512×512)</title>
+  <defs>
+    <linearGradient id="appTile" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#22d3ee"/>
+      <stop offset="25%" stop-color="#0891b2"/>
+      <stop offset="70%" stop-color="#0e7490"/>
+      <stop offset="100%" stop-color="#155e75"/>
+    </linearGradient>
+    <linearGradient id="appSheen" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.22"/>
+      <stop offset="55%" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <radialGradient id="appGlow" cx="0.3" cy="0.25" r="0.7">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- iOS-style squircle -->
+  <rect x="0" y="0" width="512" height="512" rx="115" ry="115" fill="url(#appTile)"/>
+  <rect x="0" y="0" width="512" height="512" rx="115" ry="115" fill="url(#appSheen)"/>
+  <rect x="0" y="0" width="512" height="512" rx="115" ry="115" fill="url(#appGlow)"/>
+
+  <!-- Pulse + spark, scaled up and centered -->
+  <g transform="translate(80 192)" fill="none" stroke="#ffffff" stroke-width="22" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M0 64 H56 L72 0 L120 128 L156 -16 L180 64 H216"/>
+    <!-- AI sparkle -->
+    <g transform="translate(280 64)">
+      <path d="M0 0 L48 0 M0 0 L-48 0 M0 0 L0 -48 M0 0 L0 48"/>
+      <path d="M-28 -28 L28 28 M-28 28 L28 -28" stroke-width="12" opacity="0.75"/>
+    </g>
+  </g>
+
+  <!-- Subtle inner stroke for tile crispness -->
+  <rect x="2" y="2" width="508" height="508" rx="114" ry="114" fill="none" stroke="#ffffff" stroke-width="1" opacity="0.08"/>
+</svg>

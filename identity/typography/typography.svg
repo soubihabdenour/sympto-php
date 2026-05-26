@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1200" font-family="Inter, system-ui, sans-serif">
+  <title>MedAgent AI — Type system</title>
+  <rect width="1080" height="1200" fill="#ffffff"/>
+
+  <!-- Header -->
+  <text x="60" y="74" font-size="36" font-weight="700" fill="#0f172a" letter-spacing="-0.6">Typography</text>
+  <text x="60" y="104" font-size="14" font-weight="500" fill="#64748b">
+    One typeface, Inter, sized for clinical reading: dense but never noisy.
+  </text>
+  <line x1="60" y1="124" x2="1020" y2="124" stroke="#e2e8f0"/>
+
+  <!-- Primary face -->
+  <text x="60" y="160" font-size="12" font-weight="700" fill="#0e7490" letter-spacing="2">PRIMARY TYPEFACE</text>
+  <text x="60" y="226" font-size="72" font-weight="700" fill="#0f172a" letter-spacing="-2">Inter</text>
+  <text x="60" y="256" font-size="14" font-weight="500" fill="#475569">Variable · 400 / 500 / 600 / 700 · Latin Ext · 100% open source</text>
+  <text x="60" y="276" font-size="12" font-weight="500" fill="#64748b">Google Fonts → rsms.me/inter — fallbacks: system-ui, -apple-system, Segoe UI, sans-serif</text>
+
+  <!-- Specimen row -->
+  <g>
+    <text x="60"  y="340" font-size="48" font-weight="400" fill="#0f172a">Aa</text>
+    <text x="60"  y="368" font-size="11" font-weight="600" fill="#64748b">Regular · 400</text>
+
+    <text x="180" y="340" font-size="48" font-weight="500" fill="#0f172a">Aa</text>
+    <text x="180" y="368" font-size="11" font-weight="600" fill="#64748b">Medium · 500</text>
+
+    <text x="300" y="340" font-size="48" font-weight="600" fill="#0f172a">Aa</text>
+    <text x="300" y="368" font-size="11" font-weight="600" fill="#64748b">SemiBold · 600</text>
+
+    <text x="420" y="340" font-size="48" font-weight="700" fill="#0f172a">Aa</text>
+    <text x="420" y="368" font-size="11" font-weight="600" fill="#64748b">Bold · 700</text>
+
+    <text x="540" y="340" font-size="48" font-weight="700" fill="#0e7490" font-feature-settings="'tnum'">0123</text>
+    <text x="540" y="368" font-size="11" font-weight="600" fill="#64748b">Tabular numerics</text>
+  </g>
+  <line x1="60" y1="396" x2="1020" y2="396" stroke="#e2e8f0"/>
+
+  <!-- Type scale -->
+  <text x="60" y="432" font-size="12" font-weight="700" fill="#0e7490" letter-spacing="2">TYPE SCALE</text>
+
+  <g>
+    <text x="60"  y="486" font-size="48" font-weight="700" fill="#0f172a" letter-spacing="-1.4">Differential diagnosis ready in seconds</text>
+    <text x="60"  y="510" font-size="11" font-weight="600" fill="#64748b">H1 · 48 / 56 · 700 · tracking −0.02em</text>
+
+    <text x="60"  y="566" font-size="32" font-weight="700" fill="#0f172a" letter-spacing="-0.8">Acute coronary syndrome workup</text>
+    <text x="60"  y="588" font-size="11" font-weight="600" fill="#64748b">H2 · 32 / 40 · 700 · tracking −0.02em</text>
+
+    <text x="60"  y="636" font-size="22" font-weight="600" fill="#0f172a" letter-spacing="-0.4">Patient history &amp; presenting symptoms</text>
+    <text x="60"  y="656" font-size="11" font-weight="600" fill="#64748b">H3 · 22 / 30 · 600 · tracking −0.01em</text>
+
+    <text x="60"  y="700" font-size="16" font-weight="600" fill="#0f172a">Recommended investigations</text>
+    <text x="60"  y="718" font-size="11" font-weight="600" fill="#64748b">H4 · 16 / 24 · 600</text>
+
+    <text x="60"  y="756" font-size="14" font-weight="400" fill="#334155">Body text is set in 14/22 for dense clinical reading. Line height keeps long
+      paragraphs scannable while respecting screen real estate.</text>
+    <text x="60"  y="800" font-size="11" font-weight="600" fill="#64748b">Body · 14 / 22 · 400 · #334155</text>
+
+    <text x="60"  y="838" font-size="12" font-weight="400" fill="#475569">Caption text for table footnotes, timestamps, and helper copy.</text>
+    <text x="60"  y="858" font-size="11" font-weight="600" fill="#64748b">Caption · 12 / 18 · 400 · #475569</text>
+
+    <text x="60"  y="896" font-size="11" font-weight="700" fill="#0e7490" letter-spacing="3">EYEBROW LABEL</text>
+    <text x="60"  y="914" font-size="11" font-weight="600" fill="#64748b">Eyebrow · 11 · 700 · uppercase · tracking 0.18em</text>
+  </g>
+
+  <line x1="60" y1="942" x2="1020" y2="942" stroke="#e2e8f0"/>
+
+  <!-- Wordmark / brand voice -->
+  <text x="60" y="978" font-size="12" font-weight="700" fill="#0e7490" letter-spacing="2">WORDMARK CONSTRUCTION</text>
+  <g font-family="Inter, system-ui, sans-serif" font-weight="700">
+    <text x="60" y="1056" font-size="64" fill="#0f172a" letter-spacing="-1.5">MedAgent<tspan fill="#0e7490">·AI</tspan></text>
+  </g>
+  <text x="60" y="1100" font-size="12" font-weight="500" fill="#64748b">
+    Inter Bold · 64pt · tracking −0.02em · the centered dot is U+00B7 (middle dot), AI in brand-700.
+  </text>
+  <text x="60" y="1122" font-size="12" font-weight="500" fill="#64748b">
+    Optional tagline beneath: CLINICAL  INTELLIGENCE · 11pt · 600 · uppercase · tracking 0.22em · ink-500.
+  </text>
+</svg>

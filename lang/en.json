@@ -207,6 +207,7 @@
     "agentLabel": "Agent",
     "agentChange": "change",
     "generateReport": "Generate full report",
+    "adminReadOnly": "Admin view — this case belongs to another doctor. Read-only.",
     "sparseData": "Patient data is sparse ({percent}% of common fields filled). The agent will likely ask follow-up questions before producing a confident differential.",
     "changeAgentTitle": "Change specialist agent",
     "tabs": {

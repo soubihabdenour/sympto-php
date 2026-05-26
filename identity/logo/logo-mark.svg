@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" role="img" aria-label="MedAgent AI mark">
+  <title>MedAgent AI — Mark</title>
+  <defs>
+    <linearGradient id="tile" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0891b2"/>
+      <stop offset="55%" stop-color="#0e7490"/>
+      <stop offset="100%" stop-color="#155e75"/>
+    </linearGradient>
+    <linearGradient id="sheen" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.18"/>
+      <stop offset="60%" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Tile -->
+  <rect x="0" y="0" width="80" height="80" rx="20" ry="20" fill="url(#tile)"/>
+  <rect x="0" y="0" width="80" height="80" rx="20" ry="20" fill="url(#sheen)"/>
+
+  <!-- Pulse line ending in an AI spark -->
+  <g fill="none" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M14 44 H26 L30 30 L38 58 L44 36 L48 44 H54"/>
+    <!-- AI sparkle (4-point star) -->
+    <path d="M62 44 L68 44 M62 44 L56 44 M62 44 L62 38 M62 44 L62 50"/>
+    <path d="M58.5 40.5 L65.5 47.5 M58.5 47.5 L65.5 40.5" stroke-width="2" opacity="0.7"/>
+  </g>
+</svg>

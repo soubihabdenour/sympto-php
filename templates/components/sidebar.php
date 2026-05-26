@@ -17,7 +17,7 @@ if (is_admin()) {
     <div class="px-5 py-4 border-b border-ink-200 flex items-center justify-between gap-2">
         <a href="/dashboard" class="flex items-center gap-3 min-w-0">
             <span class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-600 to-brand-800 text-white grid place-items-center shadow-sm shrink-0">
-                <?= icon('stethoscope', 'w-5 h-5') ?>
+                <?= icon('medagent-mark', 'w-6 h-6') ?>
             </span>
             <span class="min-w-0">
                 <span class="block text-sm font-bold leading-tight text-ink-900 truncate"><?= h(t('Nav.appName')) ?></span>

@@ -50,9 +50,10 @@ function logout_doctor(): void {
     session_destroy();
 }
 
-function ensure_case_access(int $caseId, int $doctorId): ?array {
+function ensure_case_access(int $caseId, int $doctorId, bool $writable = true): ?array {
     $c = db_fetch('SELECT * FROM cases WHERE id = ?', [$caseId]);
     if (!$c) return null;
-    if ((int) $c['doctor_id'] !== $doctorId) return null;
-    return $c;
+    if ((int) $c['doctor_id'] === $doctorId) return $c;
+    if (!$writable && is_admin()) return $c;
+    return null;
 }

@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" role="img" aria-label="MedAgent AI avatar">
+  <title>MedAgent AI — Social avatar (square, 400×400)</title>
+  <defs>
+    <linearGradient id="avTile" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#22d3ee"/>
+      <stop offset="30%" stop-color="#0891b2"/>
+      <stop offset="75%" stop-color="#0e7490"/>
+      <stop offset="100%" stop-color="#155e75"/>
+    </linearGradient>
+    <linearGradient id="avSheen" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.22"/>
+      <stop offset="60%" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="400" rx="80" fill="url(#avTile)"/>
+  <rect width="400" height="400" rx="80" fill="url(#avSheen)"/>
+
+  <g transform="translate(60 150)" fill="none" stroke="#ffffff" stroke-width="18" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M0 50 H44 L56 0 L94 100 L122 -12 L142 50 H168"/>
+    <g transform="translate(220 50)">
+      <path d="M-38 0 L38 0 M0 -38 L0 38"/>
+      <path d="M-22 -22 L22 22 M-22 22 L22 -22" stroke-width="10" opacity="0.7"/>
+    </g>
+  </g>
+</svg>

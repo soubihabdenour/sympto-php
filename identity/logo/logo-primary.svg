@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 80" role="img" aria-label="MedAgent AI">
+  <title>MedAgent AI — Primary horizontal lockup</title>
+  <defs>
+    <linearGradient id="tileH" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0891b2"/>
+      <stop offset="55%" stop-color="#0e7490"/>
+      <stop offset="100%" stop-color="#155e75"/>
+    </linearGradient>
+    <linearGradient id="sheenH" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.18"/>
+      <stop offset="60%" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Mark -->
+  <g>
+    <rect x="0" y="0" width="80" height="80" rx="20" ry="20" fill="url(#tileH)"/>
+    <rect x="0" y="0" width="80" height="80" rx="20" ry="20" fill="url(#sheenH)"/>
+    <g fill="none" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M14 44 H26 L30 30 L38 58 L44 36 L48 44 H54"/>
+      <path d="M62 44 L68 44 M62 44 L56 44 M62 44 L62 38 M62 44 L62 50"/>
+      <path d="M58.5 40.5 L65.5 47.5 M58.5 47.5 L65.5 40.5" stroke-width="2" opacity="0.7"/>
+    </g>
+  </g>
+
+  <!-- Wordmark -->
+  <g font-family="Inter, system-ui, -apple-system, Segoe UI, sans-serif" font-weight="700">
+    <text x="100" y="46" font-size="30" fill="#0f172a" letter-spacing="-0.6">MedAgent</text>
+    <text x="262" y="46" font-size="30" fill="#0e7490" letter-spacing="-0.6">·AI</text>
+    <text x="100" y="64" font-size="11" fill="#64748b" letter-spacing="2.4" font-weight="600">CLINICAL  INTELLIGENCE</text>
+  </g>
+</svg>

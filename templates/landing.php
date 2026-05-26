@@ -6,7 +6,7 @@ ob_start();
 <header class="px-4 sm:px-6 py-4 sm:py-5 flex items-center justify-between gap-2 max-w-6xl mx-auto">
     <a href="/" class="flex items-center gap-2 sm:gap-3 min-w-0">
         <span class="brand-logo shrink-0">
-            <?= icon('stethoscope', 'w-5 h-5') ?>
+            <?= icon('medagent-mark', 'w-6 h-6') ?>
         </span>
         <span class="min-w-0">
             <span class="block font-bold text-ink-900 leading-tight truncate"><?= h(t('Nav.appName')) ?></span>
