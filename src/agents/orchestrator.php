@@ -1,6 +1,91 @@
 <?php
 declare(strict_types=1);
 
+/**
+ * Structured vital signs are stored in patient_data.vital_signs as a JSON
+ * object with the scalar keys below plus a `custom` array of {name, value}
+ * doctor-defined entries. Legacy free-text values are kept verbatim in the
+ * `notes` slot so prior cases continue to round-trip through the form.
+ */
+const VITAL_SIGN_SCALAR_FIELDS = ['bp_systolic', 'bp_diastolic', 'hr', 'rr', 'spo2', 'temp_c', 'gcs', 'notes'];
+
+function vital_signs_parse(?string $stored): array {
+    $empty = array_fill_keys(VITAL_SIGN_SCALAR_FIELDS, '');
+    $empty['custom'] = [];
+    if ($stored === null || $stored === '') return $empty;
+    $trim = ltrim($stored);
+    if ($trim !== '' && $trim[0] === '{') {
+        $decoded = json_decode($stored, true);
+        if (is_array($decoded)) {
+            foreach (VITAL_SIGN_SCALAR_FIELDS as $k) {
+                if (isset($decoded[$k]) && $decoded[$k] !== null) {
+                    $empty[$k] = is_string($decoded[$k]) ? $decoded[$k] : (string) $decoded[$k];
+                }
+            }
+            if (isset($decoded['custom']) && is_array($decoded['custom'])) {
+                foreach ($decoded['custom'] as $row) {
+                    if (!is_array($row)) continue;
+                    $name  = isset($row['name'])  ? trim((string) $row['name'])  : '';
+                    $value = isset($row['value']) ? trim((string) $row['value']) : '';
+                    if ($name !== '' || $value !== '') {
+                        $empty['custom'][] = ['name' => $name, 'value' => $value];
+                    }
+                }
+            }
+            return $empty;
+        }
+    }
+    $empty['notes'] = $stored;
+    return $empty;
+}
+
+function vital_signs_encode(array $fields): ?string {
+    $out = [];
+    foreach (VITAL_SIGN_SCALAR_FIELDS as $k) {
+        $v = isset($fields[$k]) ? trim((string) $fields[$k]) : '';
+        if ($v !== '') $out[$k] = $v;
+    }
+    $custom = [];
+    if (isset($fields['custom']) && is_array($fields['custom'])) {
+        foreach ($fields['custom'] as $row) {
+            if (!is_array($row)) continue;
+            $name  = isset($row['name'])  ? trim((string) $row['name'])  : '';
+            $value = isset($row['value']) ? trim((string) $row['value']) : '';
+            if ($name === '' && $value === '') continue;
+            $custom[] = ['name' => $name, 'value' => $value];
+        }
+    }
+    if ($custom) $out['custom'] = $custom;
+    return $out ? json_encode($out, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) : null;
+}
+
+function vital_signs_format(?string $stored): string {
+    if ($stored === null || $stored === '') return '';
+    $v = vital_signs_parse($stored);
+    $parts = [];
+    if ($v['bp_systolic'] !== '' || $v['bp_diastolic'] !== '') {
+        $sys = $v['bp_systolic'] !== '' ? $v['bp_systolic'] : '?';
+        $dia = $v['bp_diastolic'] !== '' ? $v['bp_diastolic'] : '?';
+        $parts[] = "BP {$sys}/{$dia} mmHg";
+    }
+    if ($v['hr']     !== '') $parts[] = "HR {$v['hr']} bpm";
+    if ($v['rr']     !== '') $parts[] = "RR {$v['rr']} /min";
+    if ($v['spo2']   !== '') $parts[] = "SpO2 {$v['spo2']}%";
+    if ($v['temp_c'] !== '') $parts[] = "Temp {$v['temp_c']}°C";
+    if ($v['gcs']    !== '') $parts[] = "GCS {$v['gcs']}";
+    foreach ($v['custom'] as $row) {
+        if ($row['name'] !== '' && $row['value'] !== '') {
+            $parts[] = "{$row['name']} {$row['value']}";
+        } elseif ($row['value'] !== '') {
+            $parts[] = $row['value'];
+        } elseif ($row['name'] !== '') {
+            $parts[] = $row['name'];
+        }
+    }
+    if ($v['notes']  !== '') $parts[] = $v['notes'];
+    return implode(', ', $parts);
+}
+
 function format_context(array $ctx): string {
     $parts = [];
     $push = function (string $label, $value) use (&$parts) {
@@ -15,7 +100,7 @@ function format_context(array $ctx): string {
     $push('Medical history', $ctx['medical_history'] ?? null);
     $push('Medications', $ctx['medications'] ?? null);
     $push('Allergies', $ctx['allergies'] ?? null);
-    $push('Vital signs', $ctx['vital_signs'] ?? null);
+    $push('Vital signs', vital_signs_format($ctx['vital_signs'] ?? null));
     $push('Lab values', $ctx['lab_values'] ?? null);
     $push('Imaging summary', $ctx['imaging_summary'] ?? null);
     $push("Doctor's initial diagnosis / suspected condition", $ctx['initial_diagnosis'] ?? null);

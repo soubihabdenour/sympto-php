@@ -69,7 +69,8 @@ $profileRows = [
                     <?php foreach ($profileRows as [$labelKey, $col]):
                         $v = $patient[$col] ?? null;
                         if ($v === null || $v === '') continue;
-                        $display = is_string($v) ? $v : (string) $v;
+                        $display = $col === 'vital_signs' ? vital_signs_format((string) $v) : (is_string($v) ? $v : (string) $v);
+                        if ($display === '') continue;
                     ?>
                         <tr>
                             <td class="font-medium text-ink-700"><?= h(t("Case.patient.$labelKey")) ?></td>

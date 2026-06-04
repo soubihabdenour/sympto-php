@@ -5,6 +5,9 @@ $spec = localized_specialty($case['specialty_id']);
 $cid = (int) $case['id'];
 $is_owner = $is_owner ?? true;
 
+// Structured vital signs (JSON in patient_data.vital_signs, with legacy free-text falling into `notes`).
+$vitals = vital_signs_parse($patient['vital_signs'] ?? null);
+
 // Completeness
 $score = 0;
 foreach (['age_years', 'sex', 'symptoms', 'vital_signs', 'medical_history', 'medications', 'allergies', 'lab_values', 'clinical_question'] as $f) {
@@ -189,7 +192,6 @@ ob_start();
                 <?php
                 $fields = [
                     ['symptoms', 'symptoms', 'symptomsPh', true],
-                    ['vital_signs', 'vitals', 'vitalsPh', true],
                     ['medical_history', 'history', null, true],
                     ['medications', 'medications', null, true],
                     ['allergies', 'allergies', null, true],
@@ -198,19 +200,121 @@ ob_start();
                     ['initial_diagnosis', 'initialDx', null, false],
                     ['clinical_question', 'question', 'questionPh', true],
                 ];
-                foreach ($fields as [$col, $labelKey, $phKey, $multi]):
+                $idxSymptoms = 0;
+                $renderField = function (array $f) use ($patient) {
+                    [$col, $labelKey, $phKey, $multi] = $f;
                     $val = $patient[$col] ?? '';
                     $ph = $phKey ? t("Case.patient.$phKey") : '';
+                    ?>
+                    <div class="<?= $multi ? 'sm:col-span-2' : '' ?>">
+                        <label class="label"><?= h(t("Case.patient.$labelKey")) ?></label>
+                        <?php if ($multi): ?>
+                            <textarea name="<?= h($col) ?>" class="input min-h-[64px]" placeholder="<?= h($ph) ?>"><?= h((string) $val) ?></textarea>
+                        <?php else: ?>
+                            <input name="<?= h($col) ?>" value="<?= h((string) $val) ?>" placeholder="<?= h($ph) ?>" class="input">
+                        <?php endif; ?>
+                    </div>
+                    <?php
+                };
+                // Render the symptoms field first, then the structured vital signs block, then the rest.
+                $renderField($fields[$idxSymptoms]);
                 ?>
-                <div class="<?= $multi ? 'sm:col-span-2' : '' ?>">
-                    <label class="label"><?= h(t("Case.patient.$labelKey")) ?></label>
-                    <?php if ($multi): ?>
-                        <textarea name="<?= $col ?>" class="input min-h-[64px]" placeholder="<?= h($ph) ?>"><?= h((string) $val) ?></textarea>
-                    <?php else: ?>
-                        <input name="<?= $col ?>" value="<?= h((string) $val) ?>" placeholder="<?= h($ph) ?>" class="input">
-                    <?php endif; ?>
+                <div class="sm:col-span-2">
+                    <label class="label"><?= h(t('Case.patient.vitals')) ?></label>
+                    <div class="grid grid-cols-2 sm:grid-cols-6 gap-2">
+                        <div class="col-span-2 sm:col-span-2">
+                            <div class="text-[11px] text-ink-500 mb-1"><?= h(t('Case.patient.vitalsBp')) ?></div>
+                            <div class="flex items-center gap-1">
+                                <input type="number" min="0" max="300" inputmode="numeric" name="vs_bp_systolic"
+                                       value="<?= h($vitals['bp_systolic']) ?>"
+                                       placeholder="<?= h(t('Case.patient.vitalsBpSysPh')) ?>"
+                                       aria-label="<?= h(t('Case.patient.vitalsBpSys')) ?>" class="input">
+                                <span class="text-ink-400">/</span>
+                                <input type="number" min="0" max="200" inputmode="numeric" name="vs_bp_diastolic"
+                                       value="<?= h($vitals['bp_diastolic']) ?>"
+                                       placeholder="<?= h(t('Case.patient.vitalsBpDiaPh')) ?>"
+                                       aria-label="<?= h(t('Case.patient.vitalsBpDia')) ?>" class="input">
+                                <span class="text-[11px] text-ink-500 ml-1">mmHg</span>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="text-[11px] text-ink-500 mb-1"><?= h(t('Case.patient.vitalsHr')) ?></div>
+                            <div class="flex items-center gap-1">
+                                <input type="number" min="0" max="300" inputmode="numeric" name="vs_hr"
+                                       value="<?= h($vitals['hr']) ?>" class="input">
+                                <span class="text-[11px] text-ink-500">bpm</span>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="text-[11px] text-ink-500 mb-1"><?= h(t('Case.patient.vitalsRr')) ?></div>
+                            <div class="flex items-center gap-1">
+                                <input type="number" min="0" max="80" inputmode="numeric" name="vs_rr"
+                                       value="<?= h($vitals['rr']) ?>" class="input">
+                                <span class="text-[11px] text-ink-500">/min</span>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="text-[11px] text-ink-500 mb-1"><?= h(t('Case.patient.vitalsSpo2')) ?></div>
+                            <div class="flex items-center gap-1">
+                                <input type="number" min="0" max="100" inputmode="numeric" name="vs_spo2"
+                                       value="<?= h($vitals['spo2']) ?>" class="input">
+                                <span class="text-[11px] text-ink-500">%</span>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="text-[11px] text-ink-500 mb-1"><?= h(t('Case.patient.vitalsTemp')) ?></div>
+                            <div class="flex items-center gap-1">
+                                <input type="number" step="0.1" min="20" max="45" inputmode="decimal" name="vs_temp_c"
+                                       value="<?= h($vitals['temp_c']) ?>" class="input">
+                                <span class="text-[11px] text-ink-500">°C</span>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="text-[11px] text-ink-500 mb-1"><?= h(t('Case.patient.vitalsGcs')) ?></div>
+                            <input type="number" min="3" max="15" inputmode="numeric" name="vs_gcs"
+                                   value="<?= h($vitals['gcs']) ?>" class="input">
+                        </div>
+                        <div class="col-span-2 sm:col-span-6">
+                            <div class="text-[11px] text-ink-500 mb-1"><?= h(t('Case.patient.vitalsNotes')) ?></div>
+                            <input name="vs_notes" value="<?= h($vitals['notes']) ?>"
+                                   placeholder="<?= h(t('Case.patient.vitalsNotesPh')) ?>" class="input">
+                        </div>
+                        <div class="col-span-2 sm:col-span-6" x-data="<?= h(json_encode(['rows' => $vitals['custom']])) ?>">
+                            <div class="text-[11px] text-ink-500 mb-1 flex items-center justify-between">
+                                <span><?= h(t('Case.patient.vitalsCustom')) ?></span>
+                                <?php if ($is_owner): ?>
+                                <button type="button" @click="rows.push({name:'', value:''})"
+                                        class="inline-flex items-center gap-1 text-[11px] text-brand-700 hover:underline">
+                                    <?= icon('plus', 'w-3 h-3') ?>
+                                    <?= h(t('Case.patient.vitalsAddField')) ?>
+                                </button>
+                                <?php endif; ?>
+                            </div>
+                            <template x-for="(row, i) in rows" :key="i">
+                                <div class="flex items-center gap-1 mb-1">
+                                    <input :name="'vs_custom_name[' + i + ']'" x-model="row.name"
+                                           placeholder="<?= h(t('Case.patient.vitalsCustomNamePh')) ?>" class="input flex-1">
+                                    <input :name="'vs_custom_value[' + i + ']'" x-model="row.value"
+                                           placeholder="<?= h(t('Case.patient.vitalsCustomValuePh')) ?>" class="input flex-1">
+                                    <?php if ($is_owner): ?>
+                                    <button type="button" @click="rows.splice(i, 1)"
+                                            class="p-1.5 text-ink-400 hover:text-red-600 transition-colors"
+                                            :aria-label="'<?= h(t('Case.patient.vitalsRemoveField')) ?>'"
+                                            title="<?= h(t('Case.patient.vitalsRemoveField')) ?>">
+                                        <?= icon('trash', 'w-3.5 h-3.5') ?>
+                                    </button>
+                                    <?php endif; ?>
+                                </div>
+                            </template>
+                            <div x-show="rows.length === 0" class="text-[11px] text-ink-400 italic">
+                                <?= h(t('Case.patient.vitalsCustomEmpty')) ?>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <?php endforeach; ?>
+                <?php
+                for ($i = 1; $i < count($fields); $i++) $renderField($fields[$i]);
+                ?>
             </fieldset>
             <?php if ($is_owner): ?>
                 <div class="mt-3 flex justify-end">

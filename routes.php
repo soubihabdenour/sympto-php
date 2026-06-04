@@ -154,14 +154,35 @@ route('POST', '/cases/{id}/patient', function (string $id) {
     $cid = (int) $id;
     if (!ensure_case_access($cid, (int) $d['id'])) not_found();
     $fields = ['age_years', 'sex', 'symptoms', 'medical_history', 'medications', 'allergies', 'vital_signs', 'lab_values', 'imaging_summary', 'initial_diagnosis', 'clinical_question'];
+    $customNames  = is_array($_POST['vs_custom_name']  ?? null) ? $_POST['vs_custom_name']  : [];
+    $customValues = is_array($_POST['vs_custom_value'] ?? null) ? $_POST['vs_custom_value'] : [];
+    $custom = [];
+    foreach ($customNames as $i => $name) {
+        $custom[] = [
+            'name'  => (string) $name,
+            'value' => (string) ($customValues[$i] ?? ''),
+        ];
+    }
+    $vitalSignsJson = vital_signs_encode([
+        'bp_systolic'  => $_POST['vs_bp_systolic']  ?? '',
+        'bp_diastolic' => $_POST['vs_bp_diastolic'] ?? '',
+        'hr'           => $_POST['vs_hr']           ?? '',
+        'rr'           => $_POST['vs_rr']           ?? '',
+        'spo2'         => $_POST['vs_spo2']         ?? '',
+        'temp_c'       => $_POST['vs_temp_c']       ?? '',
+        'gcs'          => $_POST['vs_gcs']          ?? '',
+        'notes'        => $_POST['vs_notes']        ?? '',
+        'custom'       => $custom,
+    ]);
     $set = [];
     $vals = [];
     foreach ($fields as $f) {
-        $v = $_POST[$f] ?? '';
-        if ($f === 'age_years') {
-            $v = $v === '' ? null : (int) $v;
+        if ($f === 'vital_signs') {
+            $v = $vitalSignsJson;
+        } elseif ($f === 'age_years') {
+            $v = ($_POST[$f] ?? '') === '' ? null : (int) $_POST[$f];
         } else {
-            $v = trim((string) $v);
+            $v = trim((string) ($_POST[$f] ?? ''));
             $v = $v === '' ? null : $v;
         }
         $set[] = "$f = ?";
