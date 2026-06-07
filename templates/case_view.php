@@ -106,6 +106,8 @@ ob_start();
         </div>
     <?php endif; ?>
 
+    <?php if ($is_owner): require TEMPLATES_DIR . '/components/reminders_panel.php'; endif; ?>
+
     <template x-if="error">
         <div class="card border-red-200 bg-red-50 p-3 text-sm text-red-700 flex items-start gap-2">
             <?= icon('alert', 'w-4 h-4 mt-0.5 shrink-0') ?>

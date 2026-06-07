@@ -60,6 +60,7 @@ require __DIR__ . '/documents/parse.php';
 require __DIR__ . '/agents/prompts.php';
 require __DIR__ . '/agents/orchestrator.php';
 require __DIR__ . '/push.php';
+require __DIR__ . '/reminders.php';
 
 // ---------------- Helpers ----------------
 function h(?string $s): string {
@@ -98,3 +99,4 @@ function bad_request(string $msg = 'Bad request'): void {
 // Initialize DB and seed demo doctor on first request
 db_init();
 push_migrate();
+reminders_migrate();

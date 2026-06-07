@@ -612,3 +612,90 @@ route('GET', '/offline', function () {
     header('Content-Type: text/html; charset=utf-8');
     readfile(APP_ROOT . '/offline.html');
 });
+
+// ---------------- Medication reminders ----------------
+
+route('POST', '/cases/{id}/reminders', function (string $id) {
+    $d = require_doctor();
+    csrf_check();
+    $cid = (int) $id;
+    if (!ensure_case_access($cid, (int) $d['id'])) not_found();
+    $tz = trim((string) ($_POST['tz'] ?? ''));
+    try {
+        $rid = reminder_create($cid, (int) $d['id'], $_POST, $tz ?: null);
+    } catch (InvalidArgumentException $e) {
+        $_SESSION['reminder_flash'] = ['kind' => 'error', 'message' => $e->getMessage()];
+        redirect("/cases/$cid#reminders");
+    } catch (RuntimeException $e) {
+        $_SESSION['reminder_flash'] = ['kind' => 'error', 'message' => $e->getMessage()];
+        redirect("/cases/$cid#reminders");
+    }
+    audit('reminder.create', (int) $d['id'], $cid, [
+        'reminder_id' => $rid,
+        'medication' => $_POST['medication'] ?? '',
+        'interval' => (int) ($_POST['repeat_interval_minutes'] ?? 0),
+    ]);
+    $_SESSION['reminder_flash'] = ['kind' => 'ok', 'message' => 'created'];
+    redirect("/cases/$cid#reminders");
+});
+
+route('POST', '/cases/{id}/reminders/{rid}/delete', function (string $id, string $rid) {
+    $d = require_doctor();
+    csrf_check();
+    $cid = (int) $id;
+    if (!ensure_case_access($cid, (int) $d['id'])) not_found();
+    reminder_delete((int) $rid, $cid);
+    audit('reminder.delete', (int) $d['id'], $cid, ['reminder_id' => (int) $rid]);
+    redirect("/cases/$cid#reminders");
+});
+
+route('POST', '/cases/{id}/reminders/{rid}/status', function (string $id, string $rid) {
+    $d = require_doctor();
+    csrf_check();
+    $cid = (int) $id;
+    if (!ensure_case_access($cid, (int) $d['id'])) not_found();
+    $status = (string) ($_POST['status'] ?? '');
+    try {
+        reminder_set_status((int) $rid, $cid, $status);
+    } catch (InvalidArgumentException $e) {
+        bad_request($e->getMessage());
+    }
+    audit('reminder.status', (int) $d['id'], $cid, ['reminder_id' => (int) $rid, 'status' => $status]);
+    redirect("/cases/$cid#reminders");
+});
+
+route('POST', '/cases/{id}/reminders/{rid}/snooze', function (string $id, string $rid) {
+    $d = require_doctor();
+    csrf_check();
+    $cid = (int) $id;
+    if (!ensure_case_access($cid, (int) $d['id'])) not_found();
+    $minutes = (int) ($_POST['minutes'] ?? 15);
+    reminder_snooze((int) $rid, $cid, $minutes);
+    audit('reminder.snooze', (int) $d['id'], $cid, ['reminder_id' => (int) $rid, 'minutes' => $minutes]);
+    redirect("/cases/$cid#reminders");
+});
+
+// Cron endpoint — called every minute by the host's cron. Secured with a
+// shared secret in .env (CRON_SECRET). Accepts ?token= or X-Cron-Token header.
+// Idempotent: catching up after downtime skips forward to the next future slot.
+route('GET', '/api/cron/reminders', function () { reminders_cron_handler(); });
+route('POST', '/api/cron/reminders', function () { reminders_cron_handler(); });
+
+function reminders_cron_handler(): void {
+    $expected = (string) env('CRON_SECRET', '');
+    if ($expected === '') {
+        json_response(['error' => 'CRON_SECRET not configured'], 503);
+    }
+    $supplied = (string) (
+        $_GET['token']
+        ?? $_SERVER['HTTP_X_CRON_TOKEN']
+        ?? $_POST['token']
+        ?? ''
+    );
+    if (!hash_equals($expected, $supplied)) {
+        json_response(['error' => 'forbidden'], 403);
+    }
+    $limit = max(1, min(1000, (int) ($_GET['limit'] ?? REMINDER_BATCH)));
+    $summary = reminders_run_cron($limit);
+    json_response(['ok' => true] + $summary);
+}

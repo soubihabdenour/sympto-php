@@ -285,6 +285,16 @@ Run through this list before announcing the PWA to clinicians.
 - [ ] Toggle off push in browser settings → `/api/push/unsubscribe` is called → DB row removed.
 - [ ] Logout → push remains valid; on re-login no duplicate row is created.
 
+### 5.3a Medication reminders
+
+- [ ] Open a case → **Medication reminders** card is visible.
+- [ ] Add a one-shot reminder for ~2 minutes in the future → wait for cron tick → push arrives on the subscribed device → tap → opens `/cases/{id}#reminders`.
+- [ ] Add a recurring reminder (every 6h) → after firing, the next_due_at advances by 6h in the UI.
+- [ ] Snooze a reminder by 15 min → the listed next time shifts.
+- [ ] Pause a reminder → it does NOT fire on the next cron tick.
+- [ ] Stop the cron for 2 hours, restart → previously-due reminders fire only ONCE each (catch-up logic), not for every missed slot.
+- [ ] Hit `/api/cron/reminders` without `?token=` → 403. With wrong token → 403. With correct token → 200 JSON `{ok:true, ...}`.
+
 ### 5.4 Security
 
 - [ ] `https://your-domain.tld/.env` returns 403 (existing `.htaccess` rule).
@@ -366,6 +376,118 @@ board. Common findings to fix before launch:
 ### Desktop (Chrome / Edge)
 1. Click the install icon (⊕) in the omnibox, or use the install banner.
 2. The app opens in its own window with no browser chrome.
+
+---
+
+## 6.5 Medication reminders (push reminders to give a patient medicine)
+
+Doctors can attach time-scheduled reminders to any case (`/cases/{id}` →
+**Medication reminders** card). At the due time, a push notification is
+delivered to all of the owning doctor's installed devices via OneSignal.
+
+### What gets stored / sent
+
+| Field | Stored in DB? | Sent in notification? |
+|---|---|---|
+| Medication name (e.g. "Amoxicillin") | ✓ | ✓ in **title** |
+| Dosage / route (e.g. "500 mg PO") | ✓ | ✓ in **body** |
+| Doctor-set patient label (e.g. "Bed 12", "Mr. S") | ✓ | ✓ in **body** |
+| Notes (≤ 80 chars) | ✓ | ✓ in **body** |
+| Notes (> 80 chars) | ✓ | ✗ (omitted from notification) |
+| Patient demographics, age, vitals, etc. | unchanged | **NEVER** sent |
+| Document contents | unchanged | **NEVER** sent |
+
+The UI explicitly warns to keep patient labels PHI-free.
+
+### Setup — cPanel cron
+
+This is the **only** thing you must wire up on the host after deploying. The
+schema and routes ship in the code; the cron simply pokes a URL every minute.
+
+1. Generate a secret and put it in `.env`:
+
+   ```bash
+   php -r "echo bin2hex(random_bytes(32)), \"\\n\";"
+   # paste into .env:
+   CRON_SECRET="d1c4f6b3...your-long-random-string"
+   ```
+
+2. cPanel → **Cron Jobs** → add a new job:
+
+   | Field | Value |
+   |---|---|
+   | Common Settings | "Once per minute (`* * * * *`)" |
+   | Command | `curl -fsS "https://your-domain.tld/api/cron/reminders?token=YOUR_CRON_SECRET" > /dev/null` |
+
+   (Or use the `X-Cron-Token` header instead of the query string if your shared
+   host masks query strings in logs:
+   `curl -fsS -H "X-Cron-Token: YOUR_CRON_SECRET" https://your-domain.tld/api/cron/reminders > /dev/null`.)
+
+3. Verify it ran by tailing the audit log:
+
+   ```sql
+   SELECT created_at, action, detail FROM audit_logs
+   WHERE action LIKE 'reminder.%' ORDER BY id DESC LIMIT 20;
+   ```
+
+   You should see one `reminder.fire` row per dispatched reminder.
+
+### Endpoint reference
+
+| Method | Path | Auth | Effect |
+|---|---|---|---|
+| `POST` | `/cases/{id}/reminders` | Doctor + CSRF | Create reminder. Form fields: `medication, dosage, notes, patient_label, start_at` (datetime-local), `tz` (IANA, browser-supplied), `repeat_interval_minutes` (0, 240, 360, 480, 720, 1440), `repeat_until`. |
+| `POST` | `/cases/{id}/reminders/{rid}/status` | Doctor + CSRF | Pause / resume / mark done. `status` field. |
+| `POST` | `/cases/{id}/reminders/{rid}/snooze` | Doctor + CSRF | Push next firing forward by `minutes` (5–1440). |
+| `POST` | `/cases/{id}/reminders/{rid}/delete` | Doctor + CSRF | Delete. |
+| `GET`/`POST` | `/api/cron/reminders` | Shared secret (`?token=` or `X-Cron-Token`) | Dispatches all due reminders. Returns JSON summary `{considered, sent, failed, skipped, errors[], ran_at}`. |
+
+### Catch-up semantics
+
+If the cron is offline for a while (host downtime, deploy, daylight saving),
+the worker does **not** fire the reminder once per missed slot. Instead, when
+the next tick arrives, each missed reminder is dispatched **once** and
+`next_due_at` is fast-forwarded to the next future slot in the schedule.
+This avoids notification storms after maintenance windows.
+
+### Idempotency / safety
+
+- The dispatcher always advances `next_due_at` (or marks `done`) inside the
+  same DB write that records the send — so a transient OneSignal failure
+  records `last_error` on the row but does not loop firing the same minute.
+- Per-tick batch size is capped (`REMINDER_BATCH = 100`, query string
+  `?limit=` to override up to 1000).
+- Per-case reminder cap (`REMINDER_MAX_PER_CASE = 50`) enforced server-side.
+- Max interval is 1 week to prevent obvious mistakes.
+- Cron endpoint is **constant-time compared** (`hash_equals`), returns 503
+  if `CRON_SECRET` is unset (fail-safe — better to not run than to expose).
+
+### Schema
+
+```sql
+CREATE TABLE medication_reminders (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    case_id INTEGER NOT NULL REFERENCES cases(id) ON DELETE CASCADE,
+    doctor_id INTEGER NOT NULL REFERENCES doctors(id) ON DELETE CASCADE,
+    medication TEXT NOT NULL,
+    dosage TEXT,
+    notes TEXT,
+    patient_label TEXT,
+    next_due_at TEXT NOT NULL,                -- UTC, advances after each fire
+    repeat_interval_minutes INTEGER NOT NULL DEFAULT 0,  -- 0 = one-shot
+    repeat_until TEXT,                         -- UTC, NULL = forever
+    status TEXT NOT NULL DEFAULT 'active',    -- active | paused | done
+    last_sent_at TEXT,
+    last_error TEXT,
+    sent_count INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX idx_reminders_due  ON medication_reminders(status, next_due_at);
+CREATE INDEX idx_reminders_case ON medication_reminders(case_id);
+```
+
+Created idempotently by `reminders_migrate()` on every request.
 
 ---
 
