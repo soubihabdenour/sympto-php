@@ -12,12 +12,28 @@
 /* Safe areas (iOS notch / Android gesture bar) */
 body { padding-bottom: var(--safe-bottom); }
 
-/* When running as an installed app, hide install-only chrome and
-   give the top a hair more breathing room on iOS. */
+/* Mobile sticky app header — always reserve room for the device's top inset
+   (status bar / notch / Dynamic Island). On devices with no inset, env()
+   resolves to 0 so this only adds the small base offset.
+
+   Applied in every mode so that:
+     - installed PWA on iOS (black-translucent status bar) doesn't overlap the
+       menu button and brand text;
+     - regular mobile Safari/Chrome users also get a touch more breathing room
+       under the URL bar when it auto-collapses.
+*/
+.pwa-mobile-header {
+  padding-top: calc(env(safe-area-inset-top, 0px) + 0.625rem);
+  padding-left:  calc(env(safe-area-inset-left, 0px)  + 0.75rem);
+  padding-right: calc(env(safe-area-inset-right, 0px) + 0.75rem);
+  /* Keep the inner controls comfortably tall so the safe-area inset
+     doesn't visually crush the row. */
+  min-height: calc(env(safe-area-inset-top, 0px) + 3rem);
+}
+
+/* In installed-app mode, hide install-only chrome. */
 @media (display-mode: standalone), (display-mode: minimal-ui) {
   .pwa-only-browser { display: none !important; }
-  /* The mobile top bar in layout_authed.php is sticky — push it under the notch. */
-  header.lg\:hidden { padding-top: calc(0.5rem + var(--safe-top)); }
 }
 @media not all and (display-mode: standalone) {
   .pwa-only-installed { display: none !important; }

@@ -68,7 +68,7 @@ $title ??= 'MedAgent AI';
        class="hidden fixed inset-0 z-40 bg-ink-900/50 backdrop-blur-sm lg:hidden no-print"></div>
   <?php require TEMPLATES_DIR . '/components/sidebar.php'; ?>
   <div class="flex-1 flex flex-col min-w-0">
-    <header class="lg:hidden sticky top-0 z-20 bg-white/95 backdrop-blur border-b border-ink-200 px-3 py-2 flex items-center justify-between gap-2 no-print">
+    <header class="pwa-mobile-header lg:hidden sticky top-0 z-20 bg-white/95 backdrop-blur border-b border-ink-200 px-3 py-2 flex items-center justify-between gap-2 no-print">
       <button type="button" data-drawer-open class="icon-btn" aria-label="Open menu">
         <?= icon('menu', 'w-5 h-5') ?>
       </button>
