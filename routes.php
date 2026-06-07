@@ -509,3 +509,106 @@ route('POST', '/cases/{id}/report', function (string $id) {
     ]);
     json_response(['ok' => true, 'report' => $report]);
 });
+
+// ---------------- PWA / push notifications ----------------
+
+/**
+ * Helper: read JSON body from a fetch() POST. Falls back to $_POST.
+ */
+function read_json_body(): array {
+    $ct = (string) ($_SERVER['CONTENT_TYPE'] ?? '');
+    if (stripos($ct, 'application/json') !== false) {
+        $raw = file_get_contents('php://input') ?: '';
+        $data = json_decode($raw, true);
+        return is_array($data) ? $data : [];
+    }
+    return $_POST;
+}
+
+// Register a OneSignal player_id for the current doctor.
+route('POST', '/api/push/subscribe', function () {
+    csrf_check();
+    $d = require_doctor_json();
+    $data = read_json_body();
+    $playerId = trim((string) ($data['player_id'] ?? ''));
+    $platform = trim((string) ($data['platform'] ?? ''));
+    if ($playerId === '') json_response(['error' => 'player_id required'], 400);
+    try {
+        push_subscribe((int) $d['id'], $playerId, $platform ?: null);
+    } catch (InvalidArgumentException $e) {
+        json_response(['error' => $e->getMessage()], 400);
+    }
+    audit('push.subscribe', (int) $d['id'], null, ['platform' => $platform]);
+    json_response(['ok' => true]);
+});
+
+// Unregister a specific OneSignal player_id (e.g. user toggled push off in the browser).
+route('POST', '/api/push/unsubscribe', function () {
+    csrf_check();
+    $d = require_doctor_json();
+    $data = read_json_body();
+    $playerId = trim((string) ($data['player_id'] ?? ''));
+    if ($playerId === '') json_response(['error' => 'player_id required'], 400);
+    push_unsubscribe((int) $d['id'], $playerId);
+    audit('push.unsubscribe', (int) $d['id']);
+    json_response(['ok' => true]);
+});
+
+// Push notifications status for the current doctor (used by the UI).
+route('GET', '/api/push/status', function () {
+    $d = require_doctor_json();
+    $ids = push_player_ids_for_doctor((int) $d['id']);
+    json_response([
+        'configured' => push_is_configured(),
+        'app_id' => push_is_configured() ? env('ONESIGNAL_APP_ID') : null,
+        'subscribed_devices' => count($ids),
+    ]);
+});
+
+// Admin: notifications composer (page).
+route('GET', '/admin/notifications', function () {
+    $admin = require_admin();
+    render('admin_notifications', [
+        'doctor' => $admin,
+        'configured' => push_is_configured(),
+        'subscriber_count' => push_subscribed_doctor_count(),
+        'broadcasts' => push_recent_broadcasts(25),
+        'flash' => $_SESSION['admin_notif_flash'] ?? null,
+    ]);
+    unset($_SESSION['admin_notif_flash']);
+});
+
+// Admin: send a broadcast (or send to a single doctor).
+route('POST', '/admin/notifications', function () {
+    $admin = require_admin();
+    csrf_check();
+    $title = trim((string) ($_POST['title'] ?? ''));
+    $body  = trim((string) ($_POST['body']  ?? ''));
+    $url   = trim((string) ($_POST['url']   ?? ''));
+    $audience = (string) ($_POST['audience'] ?? 'all');
+    if (!in_array($audience, ['all', 'doctors', 'admins', 'doctor'], true)) {
+        $audience = 'all';
+    }
+    $opts = ['audience' => $audience, 'url' => $url ?: null];
+    if ($audience === 'doctor') {
+        $opts['doctor_id'] = (int) ($_POST['doctor_id'] ?? 0);
+    }
+    $result = push_send($title, $body, $opts);
+    push_log_broadcast((int) $admin['id'], $title, $body, $url ?: null, $audience, $result);
+    audit('push.broadcast', (int) $admin['id'], null, [
+        'audience' => $audience,
+        'ok' => $result['ok'],
+        'recipients' => $result['recipients'] ?? null,
+    ]);
+    $_SESSION['admin_notif_flash'] = $result['ok']
+        ? ['kind' => 'ok', 'message' => 'sent', 'recipients' => (int) ($result['recipients'] ?? 0)]
+        : ['kind' => 'error', 'message' => (string) ($result['error'] ?? 'failed')];
+    redirect('/admin/notifications');
+});
+
+// Public offline fallback (served directly from disk; this route only exists
+// so that a hand-typed /offline URL still works behind the front controller).
+route('GET', '/offline', function () {
+    header('Content-Type: text/html; charset=utf-8');
+    readfile(APP_ROOT . '/offline.html');
+});

@@ -6,12 +6,10 @@ $title ??= 'MedAgent AI';
 <html lang="<?= h(current_locale()) ?>">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="csrf-token" content="<?= h(csrf_token()) ?>">
-<meta name="theme-color" content="#0e7490">
 <title><?= h($title) ?></title>
-<link rel="icon" type="image/svg+xml" href="/favicon.svg">
-<link rel="apple-touch-icon" href="/app-icon.svg">
+<?php require TEMPLATES_DIR . '/components/pwa_head.php'; ?>
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="MedAgent AI">
 <meta property="og:title" content="<?= h($title) ?>">

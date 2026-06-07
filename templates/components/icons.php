@@ -47,6 +47,8 @@ function icon(string $name, string $class = 'w-5 h-5'): string {
         'menu'           => '<path d="M3 6h18M3 12h18M3 18h18"/>',
         'sun'            => '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>',
         'pulse'          => '<path d="M3 12h4l3-8 4 16 3-8h4"/>',
+        'bell'           => '<path d="M18 16v-5a6 6 0 0 0-12 0v5l-2 3h16z"/><path d="M10 21a2 2 0 0 0 4 0"/>',
+        'alert-triangle' => '<path d="M10.3 3.86a2 2 0 0 1 3.4 0l8.1 13.74A2 2 0 0 1 20.1 21H3.9a2 2 0 0 1-1.7-3.4z"/><path d="M12 9v4M12 17h.01"/>',
         // Medical / specialty icons
         'stethoscope'    => '<path d="M4 3v6a4 4 0 0 0 8 0V3"/><path d="M4 3h2M10 3h2"/><path d="M8 13v3a5 5 0 0 0 10 0v-1"/><circle cx="18" cy="13" r="2"/>',
         'heart'          => '<path d="M12 21s-7-4.5-9.5-9A5.5 5.5 0 0 1 12 6a5.5 5.5 0 0 1 9.5 6c-2.5 4.5-9.5 9-9.5 9z"/>',

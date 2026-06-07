@@ -1,13 +1,20 @@
 # Route everything through index.php; allow real files (static assets) through.
 RewriteEngine On
 
+# Force HTTPS in production (cPanel passes HTTPS via X-Forwarded-Proto).
+# Comment out if you intentionally need to test over plain HTTP locally.
+RewriteCond %{HTTPS} !=on
+RewriteCond %{HTTP:X-Forwarded-Proto} !https
+RewriteCond %{HTTP_HOST} !^(localhost|127\.0\.0\.1)
+RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+
 # Block direct access to source, templates, env, storage
 RewriteRule ^(src|templates|lang|storage)/ - [F,L]
 RewriteRule ^\.env - [F,L]
 RewriteRule ^\.htaccess - [F,L]
 RewriteRule ^routes\.php - [F,L]
 
-# Pass real files through (favicon, future css/js)
+# Pass real files through (favicon, future css/js, icons, manifest, sw, offline page)
 RewriteCond %{REQUEST_FILENAME} -f [OR]
 RewriteCond %{REQUEST_FILENAME} -d
 RewriteRule ^ - [L]
@@ -20,6 +27,41 @@ RewriteRule . index.php [L]
   Header set X-Content-Type-Options "nosniff"
   Header set X-Frame-Options "DENY"
   Header set Referrer-Policy "strict-origin-when-cross-origin"
+  Header set Permissions-Policy "camera=(), microphone=(), geolocation=(), interest-cohort=()"
+  Header set Strict-Transport-Security "max-age=31536000; includeSubDomains" env=HTTPS
+
+  # The service worker MUST be served from the root with no-cache so that
+  # browsers always pick up new versions immediately.
+  <FilesMatch "^(sw\.js|OneSignalSDKWorker\.js|OneSignalSDKUpdaterWorker\.js)$">
+    Header set Cache-Control "no-cache, no-store, must-revalidate"
+    Header set Service-Worker-Allowed "/"
+  </FilesMatch>
+
+  # The manifest changes infrequently but should not be cached forever.
+  <FilesMatch "\.(webmanifest|manifest)$">
+    Header set Cache-Control "public, max-age=3600"
+  </FilesMatch>
+
+  # Icons and immutable PWA assets — long cache (filename-versioned via SW APP_VERSION)
+  <FilesMatch "\.(png|jpg|jpeg|gif|svg|webp|avif|ico|woff2?|ttf|otf)$">
+    Header set Cache-Control "public, max-age=2592000"
+  </FilesMatch>
+</IfModule>
+
+# Correct MIME types
+<IfModule mod_mime.c>
+  AddType application/manifest+json    .webmanifest
+  AddType application/javascript        .js .mjs
+  AddType image/svg+xml                 .svg .svgz
+  AddType image/webp                    .webp
+  AddType image/avif                    .avif
+  AddType font/woff2                    .woff2
+  AddType application/xml               .xml
+</IfModule>
+
+# Compression
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/plain text/css text/javascript application/javascript application/json application/manifest+json application/xml image/svg+xml
 </IfModule>
 
 # Reasonable upload size for documents

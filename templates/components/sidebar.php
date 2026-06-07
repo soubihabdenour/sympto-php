@@ -8,6 +8,7 @@ $items = [
 ];
 if (is_admin()) {
     $items[] = ['href' => '/admin', 'label' => t('Nav.admin'), 'icon' => 'shield-check'];
+    $items[] = ['href' => '/admin/notifications', 'label' => t('Nav.broadcast'), 'icon' => 'bell'];
 }
 ?>
 <aside id="sidebar"

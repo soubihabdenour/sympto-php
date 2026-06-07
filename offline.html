@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0e7490">
+<title>Offline — MedAgent AI</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<style>
+  :root { color-scheme: light dark; }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, sans-serif;
+    color: #0f172a;
+    background:
+      radial-gradient(ellipse 800px 600px at 10% -10%, rgba(14,116,144,0.10), transparent 60%),
+      radial-gradient(ellipse 800px 600px at 110% 10%, rgba(6,182,212,0.08), transparent 60%),
+      linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    display: grid;
+    place-items: center;
+    padding: env(safe-area-inset-top) 1.25rem env(safe-area-inset-bottom);
+    min-height: 100dvh;
+  }
+  .card {
+    max-width: 28rem;
+    width: 100%;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 1rem;
+    padding: 1.75rem 1.5rem;
+    box-shadow: 0 1px 2px rgb(15 23 42 / 0.04), 0 4px 12px -2px rgb(15 23 42 / 0.06);
+    text-align: center;
+  }
+  .logo {
+    width: 64px; height: 64px;
+    margin: 0 auto 1rem;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #22d3ee, #0891b2 30%, #0e7490 75%, #155e75);
+    display: grid; place-items: center;
+    color: #fff;
+    box-shadow: 0 8px 20px -6px rgb(14 116 144 / 0.45);
+  }
+  h1 { font-size: 1.25rem; margin: 0 0 .5rem; letter-spacing: -0.01em; }
+  p { color: #475569; line-height: 1.55; margin: 0 0 1.25rem; font-size: .95rem; }
+  .row { display: flex; gap: .5rem; justify-content: center; flex-wrap: wrap; }
+  button, .btn {
+    display: inline-flex; align-items: center; gap: .5rem;
+    padding: .65rem 1rem; border-radius: .6rem;
+    border: 1px solid transparent; font-weight: 600; font-size: .9rem;
+    cursor: pointer; text-decoration: none;
+    min-height: 44px;
+  }
+  .primary { background: #0e7490; color: #fff; }
+  .primary:hover { background: #155e75; }
+  .secondary { background: #fff; color: #334155; border-color: #e2e8f0; }
+  .secondary:hover { background: #f1f5f9; }
+  .status {
+    display: inline-flex; align-items: center; gap: .4rem;
+    font-size: .8rem; color: #64748b; margin-bottom: 1rem;
+  }
+  .dot { width: .55rem; height: .55rem; border-radius: 50%; background: #ef4444; }
+  .dot.online { background: #10b981; }
+  @media (prefers-color-scheme: dark) {
+    body { background: #0f172a; color: #e2e8f0; }
+    .card { background: #1e293b; border-color: #334155; }
+    p { color: #cbd5e1; }
+    .secondary { background: #1e293b; color: #e2e8f0; border-color: #334155; }
+    .secondary:hover { background: #334155; }
+  }
+</style>
+</head>
+<body>
+  <main class="card" role="main">
+    <div class="logo" aria-hidden="true">
+      <svg viewBox="0 0 32 32" width="34" height="34" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M2 16 H8 L10 8 L14 24 L18 6 L20 16 H26"/>
+      </svg>
+    </div>
+    <p class="status"><span class="dot" id="dot"></span><span id="net">You are offline</span></p>
+    <h1>No connection</h1>
+    <p>MedAgent AI needs the network to load patient data, query the diagnostic agents, and save your work. Reconnect and try again — your last typed message is preserved in this tab.</p>
+    <div class="row">
+      <button class="primary" type="button" onclick="location.reload()">Retry</button>
+      <a class="secondary" href="/dashboard">Go to dashboard</a>
+    </div>
+  </main>
+<script>
+(function () {
+  var dot = document.getElementById('dot');
+  var label = document.getElementById('net');
+  function sync() {
+    if (navigator.onLine) {
+      dot.classList.add('online');
+      label.textContent = 'Back online — tap Retry';
+    } else {
+      dot.classList.remove('online');
+      label.textContent = 'You are offline';
+    }
+  }
+  window.addEventListener('online', function () { sync(); location.reload(); });
+  window.addEventListener('offline', sync);
+  sync();
+})();
+</script>
+</body>
+</html>

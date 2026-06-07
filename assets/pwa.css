@@ -1,0 +1,131 @@
+/*  MedAgent AI — PWA / mobile-experience styles
+    Loaded by every page. Intentionally small so it ships fast on slow networks
+    and so the in-cache copy stays useful across deploys. */
+
+:root {
+  --safe-top:    env(safe-area-inset-top);
+  --safe-bottom: env(safe-area-inset-bottom);
+  --safe-left:   env(safe-area-inset-left);
+  --safe-right:  env(safe-area-inset-right);
+}
+
+/* Safe areas (iOS notch / Android gesture bar) */
+body { padding-bottom: var(--safe-bottom); }
+
+/* When running as an installed app, hide install-only chrome and
+   give the top a hair more breathing room on iOS. */
+@media (display-mode: standalone), (display-mode: minimal-ui) {
+  .pwa-only-browser { display: none !important; }
+  /* The mobile top bar in layout_authed.php is sticky — push it under the notch. */
+  header.lg\:hidden { padding-top: calc(0.5rem + var(--safe-top)); }
+}
+@media not all and (display-mode: standalone) {
+  .pwa-only-installed { display: none !important; }
+}
+
+/* Tap targets */
+button, .icon-btn, .nav-item, a.btn-primary, a.btn-secondary {
+  -webkit-tap-highlight-color: transparent;
+}
+input, textarea, select { font-size: 16px; }  /* Prevents iOS Safari zoom-on-focus */
+
+/* Install banner */
+#pwa-install-banner {
+  position: fixed;
+  left: calc(0.75rem + var(--safe-left));
+  right: calc(0.75rem + var(--safe-right));
+  bottom: calc(0.75rem + var(--safe-bottom));
+  z-index: 60;
+  display: none;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  box-shadow: 0 10px 25px -5px rgb(15 23 42 / 0.18), 0 4px 6px -4px rgb(15 23 42 / 0.10);
+  padding: 0.75rem 0.85rem;
+  align-items: center;
+  gap: 0.75rem;
+  font-family: inherit;
+  color: #0f172a;
+}
+#pwa-install-banner.is-open { display: flex; }
+#pwa-install-banner .pwa-logo {
+  width: 38px; height: 38px; border-radius: 9px; flex-shrink: 0;
+  background: linear-gradient(135deg, #22d3ee, #0e7490);
+  display: grid; place-items: center; color: #fff;
+}
+#pwa-install-banner .pwa-text { flex: 1; min-width: 0; line-height: 1.25; }
+#pwa-install-banner .pwa-title { font-weight: 600; font-size: 0.92rem; }
+#pwa-install-banner .pwa-sub { color: #64748b; font-size: 0.78rem; }
+#pwa-install-banner .pwa-actions { display: flex; gap: 0.35rem; flex-shrink: 0; }
+#pwa-install-banner .pwa-btn {
+  display: inline-flex; align-items: center; gap: 0.35rem;
+  padding: 0.45rem 0.7rem; border-radius: 0.45rem; font-weight: 600; font-size: 0.85rem;
+  border: 1px solid transparent; cursor: pointer;
+}
+#pwa-install-banner .pwa-btn.primary { background: #0e7490; color: #fff; }
+#pwa-install-banner .pwa-btn.primary:hover { background: #155e75; }
+#pwa-install-banner .pwa-btn.ghost { background: transparent; color: #64748b; }
+#pwa-install-banner .pwa-btn.ghost:hover { color: #0f172a; background: #f1f5f9; }
+
+/* iOS install hint (no native beforeinstallprompt on iOS Safari) */
+#pwa-ios-hint {
+  position: fixed;
+  left: calc(0.75rem + var(--safe-left));
+  right: calc(0.75rem + var(--safe-right));
+  bottom: calc(0.75rem + var(--safe-bottom));
+  z-index: 60;
+  display: none;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  box-shadow: 0 10px 25px -5px rgb(15 23 42 / 0.18);
+  padding: 0.85rem 0.95rem;
+  font-size: 0.85rem;
+  color: #334155;
+  line-height: 1.4;
+}
+#pwa-ios-hint.is-open { display: block; }
+#pwa-ios-hint b { color: #0f172a; }
+#pwa-ios-hint .share-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 18px; height: 18px; vertical-align: -3px; margin: 0 2px;
+}
+#pwa-ios-hint button.close {
+  float: right; background: none; border: 0; color: #64748b;
+  cursor: pointer; font-size: 1.1rem; padding: 0 0.25rem; line-height: 1;
+}
+
+/* Network status toast (when service worker reports offline) */
+#pwa-net-toast {
+  position: fixed;
+  top: calc(0.5rem + var(--safe-top));
+  left: 50%; transform: translateX(-50%);
+  z-index: 70;
+  background: #ef4444; color: #fff;
+  padding: 0.4rem 0.85rem; border-radius: 999px;
+  font-size: 0.8rem; font-weight: 600;
+  box-shadow: 0 6px 16px -4px rgb(239 68 68 / 0.55);
+  display: none;
+}
+#pwa-net-toast.is-open { display: block; }
+#pwa-net-toast.is-online { background: #10b981; box-shadow: 0 6px 16px -4px rgb(16 185 129 / 0.5); }
+
+/* Update-available banner */
+#pwa-update-banner {
+  position: fixed;
+  left: 50%; transform: translateX(-50%);
+  bottom: calc(0.75rem + var(--safe-bottom));
+  z-index: 60;
+  display: none;
+  background: #0f172a; color: #fff;
+  padding: 0.55rem 0.65rem 0.55rem 0.9rem; border-radius: 999px;
+  align-items: center; gap: 0.6rem; font-size: 0.85rem;
+  box-shadow: 0 10px 25px -8px rgb(15 23 42 / 0.45);
+}
+#pwa-update-banner.is-open { display: inline-flex; }
+#pwa-update-banner button {
+  background: #06b6d4; color: #0f172a; border: 0;
+  padding: 0.35rem 0.7rem; border-radius: 999px;
+  font-weight: 700; font-size: 0.78rem; cursor: pointer;
+}
+#pwa-update-banner button:hover { background: #22d3ee; }
