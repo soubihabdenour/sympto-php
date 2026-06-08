@@ -20,7 +20,16 @@ $pwa_locale = current_locale();
 <meta name="application-name" content="MedAgent AI">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<!--
+  status-bar-style:
+    "default" tells iOS to render its own status bar (clock / battery) ABOVE
+    the web view. The web view starts below it, so the app header never
+    overlaps the notch. (Switching to "black-translucent" floats the web
+    view UNDER the status bar and requires perfect safe-area padding
+    everywhere — fragile, especially on installs cached before the safe-area
+    CSS shipped.)
+-->
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="MedAgent AI">
 <meta name="msapplication-config" content="/browserconfig.xml">
 <meta name="msapplication-TileColor" content="#0e7490">

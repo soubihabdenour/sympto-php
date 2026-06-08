@@ -13,22 +13,32 @@
 body { padding-bottom: var(--safe-bottom); }
 
 /* Mobile sticky app header — always reserve room for the device's top inset
-   (status bar / notch / Dynamic Island). On devices with no inset, env()
-   resolves to 0 so this only adds the small base offset.
+   (status bar / notch / Dynamic Island).
 
-   Applied in every mode so that:
-     - installed PWA on iOS (black-translucent status bar) doesn't overlap the
-       menu button and brand text;
-     - regular mobile Safari/Chrome users also get a touch more breathing room
-       under the URL bar when it auto-collapses.
+   With apple-mobile-web-app-status-bar-style="default", iOS already pushes
+   the web view below the status bar in installed PWA mode, so the
+   safe-area inset is the belt-and-suspenders bit: it handles landscape
+   home-indicator insets and the (rare) case where iOS reports a non-zero
+   top inset (e.g. status-bar-style left at "black-translucent" on a
+   previously-installed copy that hasn't been re-added yet).
 */
 .pwa-mobile-header {
-  padding-top: calc(env(safe-area-inset-top, 0px) + 0.625rem);
-  padding-left:  calc(env(safe-area-inset-left, 0px)  + 0.75rem);
-  padding-right: calc(env(safe-area-inset-right, 0px) + 0.75rem);
-  /* Keep the inner controls comfortably tall so the safe-area inset
-     doesn't visually crush the row. */
-  min-height: calc(env(safe-area-inset-top, 0px) + 3rem);
+  /* `max()` ensures we always have at least 0.75rem visible padding, even
+     if env() resolves to 0. */
+  padding-top: max(0.75rem, env(safe-area-inset-top, 0px));
+  padding-left:  max(0.75rem, env(safe-area-inset-left, 0px));
+  padding-right: max(0.75rem, env(safe-area-inset-right, 0px));
+  padding-bottom: 0.5rem;
+}
+
+/* Standalone PWA: iOS installed apps that were added BEFORE we switched
+   away from "black-translucent" still float the web view under the notch.
+   Reserve the notch height explicitly for those installs. Safe to keep on
+   permanently because under "default" the inset returns 0. */
+@media (display-mode: standalone), (display-mode: minimal-ui) {
+  .pwa-mobile-header {
+    padding-top: calc(env(safe-area-inset-top, 0px) + 0.75rem);
+  }
 }
 
 /* In installed-app mode, hide install-only chrome. */

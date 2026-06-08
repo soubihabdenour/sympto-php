@@ -21,7 +21,7 @@
  */
 'use strict';
 
-const APP_VERSION = '1.0.0';
+const APP_VERSION = '1.0.1';
 const PRECACHE   = `medagent-precache-v${APP_VERSION}`;
 const RUNTIME    = `medagent-runtime-v${APP_VERSION}`;
 const FONT_CACHE = `medagent-fonts-v${APP_VERSION}`;
